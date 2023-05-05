@@ -44,13 +44,7 @@ public class UserController : ControllerBase
     [HttpPost("Login")]
     public async Task<ActionResult<User>> Login([FromBody] UserLoginDto userLoginDto)
     {
-        if (User.Identity.IsAuthenticated)
-        {
-            Console.WriteLine("Here");
-            throw new UserAlreadySignedInException();
-        }
-
-        ;
+        if (User.Identity.IsAuthenticated) throw new UserAlreadySignedInException();
 
         var user = await _userService.LoginUserAsync(userLoginDto).ConfigureAwait(false);
         var claims = GenerateClaims(user);
