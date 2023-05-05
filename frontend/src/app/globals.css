@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    background: #0F172A;
+    color: white;
+}
+
+.box-hover {
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease-in-out;
+}
+
+.box-hover:hover {
+    color: theme('backgroundColor.accent'); /* Add the primary color from the palette when hovered */
+}
+
+.box-hover::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 0;
+    height: 0;
+
+    transition: width 0.3s ease, height 0.3s ease, padding 0.3s ease, transform 0.3s ease;
+    box-sizing: border-box;
+}
+
+.box-hover:hover::after {
+    border: 1px solid theme('backgroundColor.accent');
+    width: 100%;
+    height: 100%;
+    padding-left: 19px;
+    padding-right: 19px;
+    transform: translateY(1px);
+}
+
+.box-selected {
+    position: relative;
+    border: 1px solid theme('backgroundColor.accent');
+    padding-left: 19px;
+    padding-right: 19px;
+    transition: width 0.3s ease, height 0.3s ease, padding 0.3s ease, transform 0.3s ease;
+    box-sizing: border-box;
+    color: theme('backgroundColor.accent'); /* Add the primary color from the palette when selected */
+}
+
+.box-selected::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 0;
+    height: 0;
+}
+
+.box-selected:hover::after {
+    border: none;
+}
+
+
+.box-selected.box-hover:hover::after {
+    border: 1px solid theme('backgroundColor.accent');
+    width: 100%;
+    height: 100%;
+    padding-left: 19px;
+    padding-right: 19px;
+    transform: translateY(1px);
+}

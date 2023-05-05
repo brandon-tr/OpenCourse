@@ -1,0 +1,13 @@
+.transition-height {
+    transition-property: height;
+    transition-timing-function: ease-in-out;
+    transition-duration: 300ms;
+}
+
+svg {
+    transform-origin: center;
+}
+
+svg.open {
+    transform: rotate(180deg);
+}
