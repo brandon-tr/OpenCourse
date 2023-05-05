@@ -21,27 +21,13 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
-    // GET USER WITH ID: api/Authentication/5
+    // GET USER WITH ID: api/Authentication/{id}
     [HttpGet("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<GetUserResponseDto>> GetUser(int id)
     {
-        try
-        {
-            return await _userService.GetUserAsync(id).ConfigureAwait(false);
-        }
-        catch (UserNotFoundException)
-        {
-            return NotFound();
-        }
-        catch (ArgumentNullException)
-        {
-            return BadRequest();
-        }
-        catch (Exception)
-        {
-            return StatusCode(500);
-        }
+        var user = await _userService.GetUserAsync(id).ConfigureAwait(false);
+        return user;
     }
 
     // POST REGISTER: api/Authentication/Register
@@ -49,55 +35,45 @@ public class UserController : ControllerBase
     public async Task<ActionResult<GetUserResponseDto>> Register([FromBody] UserRegistrationDto registerUser)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-        try
-        {
-            var user = await _userService.RegisterUserAsync(registerUser);
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
-        }
-        catch (EmailAlreadyExistsException)
-        {
-            return BadRequest("Email Already Exists");
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500);
-        }
+
+        var user = await _userService.RegisterUserAsync(registerUser);
+        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
     }
 
     // POST Login: api/Authentication/Login
     [HttpPost("Login")]
     public async Task<ActionResult<User>> Login([FromBody] UserLoginDto userLoginDto)
     {
-        try
+        if (User.Identity.IsAuthenticated)
         {
-            var user = await _userService.LoginUserAsync(userLoginDto).ConfigureAwait(false);
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Email, user.Email)
-            };
-            foreach (var userRole in user.UserRoles) claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+            Console.WriteLine("Here");
+            throw new UserAlreadySignedInException();
+        }
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true
-            };
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity), authProperties);
-            return Ok();
-        }
-        catch (UserNotFoundException)
+        ;
+
+        var user = await _userService.LoginUserAsync(userLoginDto).ConfigureAwait(false);
+        var claims = GenerateClaims(user);
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
         {
-            return NotFound();
-        }
-        catch (WrongPasswordException)
+            IsPersistent = true
+        };
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity), authProperties);
+        return Ok();
+    }
+
+    private static List<Claim> GenerateClaims(User user)
+    {
+        var claims = new List<Claim>
         {
-            return Unauthorized("Incorrect Password");
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500);
-        }
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email)
+        };
+
+        foreach (var userRole in user.UserRoles) claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+        return claims;
     }
 }
