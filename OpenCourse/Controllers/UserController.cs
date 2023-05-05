@@ -23,7 +23,7 @@ public class UserController : ControllerBase
 
     // GET USER WITH ID: api/Authentication/5
     [HttpGet("{id}")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<GetUserResponseDto>> GetUser(int id)
     {
         try
