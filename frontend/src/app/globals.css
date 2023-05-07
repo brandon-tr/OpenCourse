@@ -71,3 +71,22 @@ body {
     padding-right: 19px;
     transform: translateY(1px);
 }
+
+.hamburger {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    height: 24px;
+    width: 32px;
+}
+
+.hamburger-bar {
+    background-color: theme('backgroundColor.accent');
+    border-radius: 4px;
+    height: 3px;
+    width: 100%;
+}

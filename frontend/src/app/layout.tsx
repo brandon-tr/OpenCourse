@@ -18,10 +18,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="min-h-screen flex flex-col justify-center">
+        <div className="min-h-screen w-full flex flex-col">
           <AppBar
             avatarSrc={"https://ui-avatars.com/api/?name=John+Doe"}
-            logoSrc={"/img.png"}
+            isLogoText={true}
+            logoText={"OpenCourse"}
             items={[
               {
                 title: "Home",
@@ -34,7 +35,7 @@ export default function RootLayout({
             logoAlt={"logo"}
             badgeText={"32"}
           />
-          <CenteredLayout>{children}</CenteredLayout>
+          {children}
         </div>
       </body>
     </html>

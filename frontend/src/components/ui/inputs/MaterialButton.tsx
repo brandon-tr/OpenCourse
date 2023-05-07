@@ -1,16 +1,16 @@
-import React from "react";
-
 interface MaterialButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "small" | "medium" | "large" | "full";
   spacingTop?: number;
   spacingBottom?: number;
+  rounded?: boolean;
 }
 
 const MaterialButton: React.FC<MaterialButtonProps> = ({
   size = "medium",
   spacingTop = 0,
   spacingBottom = 0,
+  rounded = false,
   children,
   ...props
 }) => {
@@ -24,11 +24,12 @@ const MaterialButton: React.FC<MaterialButtonProps> = ({
   const style = {
     marginTop: `${spacingTop * 0.25}rem`,
     marginBottom: `${spacingBottom * 0.25}rem`,
+    borderRadius: rounded ? "999px" : "4px",
   };
 
   return (
     <button
-      className={`bg-primary-light hover:bg-green-700 text-white font-semibold rounded ${sizeClasses[size]}`}
+      className={`bg-primary-light hover:bg-green-700 text-white font-semibold ${sizeClasses[size]}`}
       style={style}
       {...props}
     >

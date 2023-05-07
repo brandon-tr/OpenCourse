@@ -1,8 +1,9 @@
 import Accordion from "@/components/ui/Surfaces/accordion/Accordion";
+import CenteredLayout from "@/components/ui/layout/Container";
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center justify-between p-6 md:p-24 w-full gap-4">
+    <CenteredLayout className="flex flex-col items-center justify-between p-6 md:p-24 w-full gap-4">
       <Accordion
         title={"What is the purpose of this website?"}
         content={
@@ -13,6 +14,6 @@ export default function Home() {
         }
       />
       <Accordion title={"How do I use this"} content={"No clue"} />
-    </main>
+    </CenteredLayout>
   );
 }
