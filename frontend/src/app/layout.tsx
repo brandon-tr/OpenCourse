@@ -1,7 +1,8 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import AppBar from "@/components/ui/layout/AppBar";
-import CenteredLayout from "@/components/ui/layout/Container";
+import { headers } from "next/headers";
+import isMobileDevice from "@/components/utility/IsMobileDevice";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,11 +16,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = headers();
+  const userAgent = headersList.get("user-agent");
   return (
     <html lang="en">
       <body className={inter.className}>
         <div className="min-h-screen w-full flex flex-col">
           <AppBar
+            isMobile={isMobileDevice(userAgent)}
             avatarSrc={"https://ui-avatars.com/api/?name=John+Doe"}
             isLogoText={true}
             logoText={"OpenCourse"}

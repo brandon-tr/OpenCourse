@@ -4,10 +4,10 @@
     transition-duration: 300ms;
 }
 
-svg {
+.arrow {
     transform-origin: center;
 }
 
-svg.open {
+.arrow .open {
     transform: rotate(180deg);
 }

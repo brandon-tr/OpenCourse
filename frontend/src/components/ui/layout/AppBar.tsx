@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
+import { headers } from "next/headers";
 import Avatar from "@/components/ui/Surfaces/Avatar";
 import Badge from "@/components/ui/Surfaces/Badge";
 import useResizeObserver from "@/components/hooks/UseResizeObserver";
@@ -28,6 +29,7 @@ type AppBarProps = LogoProps & {
   badgeText?: string;
   items: { title: string; link: string }[];
   roundedLogo?: boolean;
+  isMobile?: boolean;
 };
 
 const AppBar: React.FC<AppBarProps> = ({
@@ -39,6 +41,7 @@ const AppBar: React.FC<AppBarProps> = ({
   badgeText,
   items,
   roundedLogo = true,
+  isMobile = false,
 }) => {
   const { ref, height } = useResizeObserver();
   const setAppBarHeight = useUiStore((state) => state.setAppBarHeight);
@@ -59,7 +62,7 @@ const AppBar: React.FC<AppBarProps> = ({
   return (
     <header ref={ref} className="bg-primary shadow-md z-100 w-screen">
       <div className="mx-auto px-4 py-2 flex w-screen justify-between items-center">
-        {width && width <= 768 ? (
+        {isMobile || (width && width <= 768) ? (
           <button className="hamburger" onClick={handleHamburgerClick}>
             <span className="hamburger-bar" />
             <span className="hamburger-bar" />
@@ -90,7 +93,9 @@ const AppBar: React.FC<AppBarProps> = ({
         )}
         <div
           className={`flex ${
-            width && width <= 768 ? "w-screen justify-between" : "items-center"
+            isMobile || (width && width <= 768)
+              ? "w-screen justify-between"
+              : "items-center"
           }`}
         >
           <nav className="flex items-center space-x-4 ml-4">

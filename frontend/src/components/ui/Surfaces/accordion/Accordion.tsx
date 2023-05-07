@@ -32,7 +32,7 @@ const Accordion: React.FC<AccordionProps> = ({ title, content }) => {
       >
         <h2 className="text-lg font-medium text-white">{title}</h2>
         <svg
-          className={getClassNames("w-6 h-6", isOpen && "open")}
+          className={getClassNames("w-6 h-6 arrow", isOpen && "open")}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

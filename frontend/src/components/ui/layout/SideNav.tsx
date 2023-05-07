@@ -9,9 +9,14 @@ import useClickOutside from "@/components/hooks/UseClickOutside";
 interface SideNavProps {
   items: { title: string; link: string; category: string }[];
   children: React.ReactNode;
+  isMobile?: boolean;
 }
 
-const SideNav: React.FC<SideNavProps> = ({ items, children }) => {
+const SideNav: React.FC<SideNavProps> = ({
+  items,
+  children,
+  isMobile = false,
+}) => {
   const appBarHeight = useUiStore((state) => state.appBarHeight);
   const navWidth = "16";
   const { width } = useWindowSize();
@@ -31,7 +36,7 @@ const SideNav: React.FC<SideNavProps> = ({ items, children }) => {
   });
 
   const shouldShowNav = () => {
-    if (width && width <= mobileBreakpoint) {
+    if (isMobile || (width && width <= mobileBreakpoint)) {
       return isOpen;
     }
     return true;
