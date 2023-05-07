@@ -10,12 +10,14 @@ interface SideNavProps {
   items: { title: string; link: string; category: string }[];
   children: React.ReactNode;
   isMobile?: boolean;
+  opacity?: number;
 }
 
 const SideNav: React.FC<SideNavProps> = ({
   items,
   children,
   isMobile = false,
+  opacity = 75,
 }) => {
   const appBarHeight = useUiStore((state) => state.appBarHeight);
   const navWidth = "16";
@@ -26,16 +28,13 @@ const SideNav: React.FC<SideNavProps> = ({
   const mobileBreakpoint = 768;
 
   useClickOutside(sideNavRef, (e: MouseEvent | TouchEvent) => {
-    if (
-      e.target &&
-      (e.target as HTMLElement)?.className === "hamburger" &&
-      (e.target as HTMLElement)?.className === "hamburger-bar"
-    ) {
+    if (e.target instanceof HTMLElement && e.target.id !== "hamburger") {
       setIsOpen(false);
     }
   });
 
   const shouldShowNav = () => {
+    console.log(isOpen);
     if (isMobile || (width && width <= mobileBreakpoint)) {
       return isOpen;
     }
@@ -68,7 +67,10 @@ const SideNav: React.FC<SideNavProps> = ({
         <div
           ref={sideNavRef}
           className="fixed top-14 left-0 h-full z-10 bg-primary w-64"
-          style={{ top: appBarHeight }}
+          style={{
+            top: appBarHeight,
+            opacity: opacity / 100,
+          }}
         >
           <nav className="flex flex-col pt-4 px-4 space-y-4">
             {Object.entries(linksByCategory).map(([category, links], index) => (
