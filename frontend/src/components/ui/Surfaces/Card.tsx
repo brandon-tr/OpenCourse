@@ -8,6 +8,7 @@ type CardProps = {
   centerTitle?: boolean;
   removeBg?: boolean;
   bgColor?: string;
+  isMobile?: boolean;
 };
 
 function Card({
@@ -18,6 +19,7 @@ function Card({
   centerTitle = false,
   removeBg = false,
   bgColor,
+  isMobile = false,
 }: CardProps) {
   const titleClass = centerTitle
     ? "text-2xl font-bold mb-6 text-center"
@@ -30,7 +32,11 @@ function Card({
   const bgClass = removeBg ? "" : bgColor ? `bg-${bgColor}` : "bg-accent";
 
   return (
-    <div className={`p-6 md:p-12 rounded-lg w-full ${bgClass}`}>
+    <div
+      className={`p-6 md:p-12 rounded-lg ${
+        isMobile ? "w-screen" : "w-full"
+      } ${bgClass}`}
+    >
       <h2 className={titleClass}>{title}</h2>
       {subtitle && <h3 className="text-lg font-bold mb-4">{subtitle}</h3>}
       <div className="mb-4">{children}</div>
