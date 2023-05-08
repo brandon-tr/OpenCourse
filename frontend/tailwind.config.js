@@ -7,6 +7,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      translate: {
+        "-full": "-100%",
+      },
       backgroundColor: {
         "primary-lightest": "#0F172A",
         "primary-light": "#374151",

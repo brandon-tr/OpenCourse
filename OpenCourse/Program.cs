@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using OpenCourse.Data;
@@ -12,11 +13,39 @@ builder.Services.AddDbContext<OpenCourseContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddLogging();
 builder.Services.AddAuthorization();
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        return RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Request.Headers.UserAgent.ToString(),
+            partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 60,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            });
+    });
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            await context.HttpContext.Response.WriteAsync(
+                $"Too many requests. Please try again after {retryAfter.TotalMinutes} minute(s). " +
+                $"Read more about our rate limits at https://example.org/docs/ratelimiting.", token);
+        else
+            await context.HttpContext.Response.WriteAsync(
+                "Too many requests. Please try again later. " +
+                "Read more about our rate limits at https://example.org/docs/ratelimiting.", token);
+    };
+});
+
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -51,11 +80,11 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    Console.WriteLine("Here");
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-// app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpLogging();
