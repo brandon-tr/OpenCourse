@@ -1,6 +1,7 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using OpenCourse.Data;
 using OpenCourse.Middlewares;
@@ -89,6 +90,11 @@ else
     app.UseHsts();
     app.UseHttpsRedirection();
 }
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.UseMiddleware<CustomExceptionHandlerMiddleware>();
 app.UseRateLimiter();

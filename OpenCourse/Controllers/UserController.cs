@@ -60,6 +60,10 @@ public class UserController : ControllerBase
         };
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(claimsIdentity), authProperties);
+
+        user.LastLogIn = DateTime.UtcNow;
+        user.LastLoginIp = HttpContext.Connection.RemoteIpAddress;
+        await _userService.UpdateUserAsync(user);
         return Ok(new { message = "Welcome back " + user.FirstName, status = 200 });
     }
 

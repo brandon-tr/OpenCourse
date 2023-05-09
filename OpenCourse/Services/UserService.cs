@@ -100,4 +100,10 @@ public class UserService : IUserInterface
     {
         return await _context.User.AnyAsync(u => u.Email == email).ConfigureAwait(false);
     }
+
+    public async Task UpdateUserAsync(User user)
+    {
+        _context.Update(user);
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+    }
 }
