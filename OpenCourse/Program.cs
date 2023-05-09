@@ -1,5 +1,6 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OpenCourse.Data;
 using OpenCourse.Middlewares;
@@ -16,7 +17,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddLogging();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AnonymousOnly", policy => { policy.Requirements.Add(new AnonymousOnlyRequirement()); });
+});
+builder.Services.AddSingleton<IAuthorizationHandler, AnonymousOnlyAuthorizationHandler>();
+// Create Rate Limiter
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
@@ -45,7 +51,7 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-
+// Create Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -84,11 +90,11 @@ else
     app.UseHttpsRedirection();
 }
 
+app.UseMiddleware<CustomExceptionHandlerMiddleware>();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpLogging();
-app.UseMiddleware<CustomExceptionHandlerMiddleware>();
 app.MapControllers();
 
 

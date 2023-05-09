@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenCourse.Data.DTOs.Response;
-using OpenCourse.Exceptions;
 using OpenCourse.Model;
 using OpenCourse.Services;
 
@@ -32,20 +31,25 @@ public class UserController : ControllerBase
 
     // POST REGISTER: api/Authentication/Register
     [HttpPost("Register")]
+    [Authorize(Policy = "AnonymousOnly")]
     public async Task<ActionResult<GetUserResponseDto>> Register([FromBody] UserRegistrationDto registerUser)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var user = await _userService.RegisterUserAsync(registerUser);
-        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+        var response = new
+        {
+            message = "Welcome " + user.FirstName + ", thank you for registering",
+            status = 200
+        };
+        return Created("", response);
     }
 
     // POST Login: api/Authentication/Login
     [HttpPost("Login")]
+    [Authorize(Policy = "AnonymousOnly")]
     public async Task<ActionResult<User>> Login([FromBody] UserLoginDto userLoginDto)
     {
-        if (User.Identity.IsAuthenticated) throw new UserAlreadySignedInException();
-
         var user = await _userService.LoginUserAsync(userLoginDto).ConfigureAwait(false);
         var claims = GenerateClaims(user);
 
@@ -56,7 +60,7 @@ public class UserController : ControllerBase
         };
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(claimsIdentity), authProperties);
-        return Ok();
+        return Ok(new { message = "Welcome back " + user.FirstName, status = 200 });
     }
 
     private static List<Claim> GenerateClaims(User user)
