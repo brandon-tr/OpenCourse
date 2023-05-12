@@ -3,9 +3,9 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
-import { TextInput } from "@/components/ui/inputs/TextInput";
+import { TextInputForms } from "@/components/ui/inputs/TextInputForms";
 import { useUiStore } from "@/components/store/Store";
-import Alert from "@/components/ui/Surfaces/Alert";
+import Alert from "@/components/ui/Surfaces/Alerts/Alert";
 
 type FormData = {
   email: string;
@@ -51,7 +51,7 @@ const RegistrationForm: React.FC = () => {
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
-          <TextInput
+          <TextInputForms
             id="email"
             type="email"
             label="Email"
@@ -70,7 +70,7 @@ const RegistrationForm: React.FC = () => {
             }}
           />
 
-          <TextInput
+          <TextInputForms
             id="firstName"
             type="text"
             label="First Name"
@@ -89,7 +89,7 @@ const RegistrationForm: React.FC = () => {
             }}
           />
 
-          <TextInput
+          <TextInputForms
             id="lastName"
             type="text"
             label="Last Name"
@@ -108,7 +108,7 @@ const RegistrationForm: React.FC = () => {
             }}
           />
 
-          <TextInput
+          <TextInputForms
             id="password"
             type="password"
             label="Password"
@@ -127,7 +127,7 @@ const RegistrationForm: React.FC = () => {
             }}
           />
 
-          <TextInput
+          <TextInputForms
             id="confirmPassword"
             type="password"
             label="Confirm Password"

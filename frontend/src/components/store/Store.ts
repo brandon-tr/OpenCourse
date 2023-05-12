@@ -8,18 +8,29 @@ interface UiStore {
   };
   showAlert: (
     message: string,
-    severity: "success" | "info" | "warning" | "error"
+    severity: "success" | "info" | "warning" | "error",
+    notification?: boolean
   ) => void;
   hideAlert: () => void;
   appBarHeight: number;
   setAppBarHeight: (height: number) => void;
   isSideNavOpen: boolean;
   setIsSideNavOpen: (isOpen: boolean) => void;
+  notification: {
+    active: boolean;
+    message: string;
+    severity: "success" | "info" | "warning" | "error";
+  };
+  showNotification: (
+    message: string,
+    severity: "success" | "info" | "warning" | "error"
+  ) => void;
+  hideNotification: () => void;
 }
 
 export const useUiStore = create<UiStore>((set) => ({
   alert: { active: false, message: "", severity: "info" },
-  showAlert: (message, severity) =>
+  showAlert: (message, severity, notification = false) =>
     set((state) => ({
       alert: {
         active: true,
@@ -38,4 +49,24 @@ export const useUiStore = create<UiStore>((set) => ({
   setAppBarHeight: (height: number) => set({ appBarHeight: height }),
   isSideNavOpen: false,
   setIsSideNavOpen: (isOpen: boolean) => set({ isSideNavOpen: isOpen }),
+  notification: {
+    active: false,
+    message: "",
+    severity: "info",
+  },
+  showNotification: (message, severity) =>
+    set((state) => ({
+      notification: {
+        active: true,
+        message,
+        severity,
+      },
+    })),
+  hideNotification: () =>
+    set((state) => ({
+      notification: {
+        ...state.notification,
+        active: false,
+      },
+    })),
 }));

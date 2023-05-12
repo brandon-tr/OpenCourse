@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OpenCourse.Data;
 using OpenCourse.Data.DTOs.Response;
 using OpenCourse.Model;
 using OpenCourse.Services;
@@ -27,6 +28,16 @@ public class UserController : ControllerBase
     {
         var user = await _userService.GetUserAsync(id).ConfigureAwait(false);
         return user;
+    }
+
+    // GET ALL USERS PAGINATION WITH FILTER: api/Authentication/GetAllUsers
+    [HttpGet("GetAllUsers")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<PagedUsersResponseDto>> GetAllUsers(
+        [FromQuery] PagingParameters getAllUsersDto)
+    {
+        var users = await _userService.GetAllUsersAsync(getAllUsersDto).ConfigureAwait(false);
+        return Ok(users);
     }
 
     // POST REGISTER: api/Authentication/Register
@@ -65,6 +76,13 @@ public class UserController : ControllerBase
         user.LastLoginIp = HttpContext.Connection.RemoteIpAddress;
         await _userService.UpdateUserAsync(user);
         return Ok(new { message = "Welcome back " + user.FirstName, status = 200 });
+    }
+
+    [HttpGet("checkAdmin")]
+    [Authorize(Roles = "Admin")]
+    public ActionResult CheckAdmin()
+    {
+        return Ok(new { message = "Approved", status = 200 });
     }
 
     private static List<Claim> GenerateClaims(User user)

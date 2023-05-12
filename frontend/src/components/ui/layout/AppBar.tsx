@@ -61,8 +61,8 @@ const AppBar: React.FC<AppBarProps> = ({
   }, [isSideNavOpen, setIsSideNavOpen]);
 
   return (
-    <header ref={ref} className="bg-primary shadow-md z-100 w-screen">
-      <div className="mx-auto px-4 py-2 flex w-screen justify-between items-center">
+    <header ref={ref} className="bg-primary shadow-md z-100 w-full">
+      <div className="mx-auto px-4 py-2 flex justify-between items-center">
         {isMobile || (width && width <= 768)
           ? pathName.includes("dashboard") && (
               <button

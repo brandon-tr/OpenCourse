@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import AppBar from "@/components/ui/layout/AppBar";
 import { headers } from "next/headers";
 import isMobileDevice from "@/components/utility/IsMobileDevice";
+import Notification from "@/components/ui/Surfaces/Alerts/Notification";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,6 +41,7 @@ export default function RootLayout({
             badgeText={"32"}
           />
           {children}
+          <Notification />
         </div>
       </body>
     </html>

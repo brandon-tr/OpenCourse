@@ -1,56 +1,54 @@
-import React from "react";
-import { UseFormRegister, FieldError } from "react-hook-form";
+"use client";
+
+import React, { FC, ChangeEvent, useState, useEffect, useMemo } from "react";
+import { useUiStore } from "@/components/store/Store";
+import { useDebounce } from "@/components/hooks/UseDebounce";
 
 interface TextInputProps {
-  id: string;
-  type: string;
-  register: UseFormRegister<any>;
-  label?: string;
-  required?: boolean;
-  validationOptions?: any;
-  error?: FieldError;
-  errorTextColor?: string;
-  errorBgColor?: string;
-  errorBorderColor?: string;
+  label: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  debounced?: boolean;
 }
 
-export const TextInput: React.FC<TextInputProps> = ({
-  id,
-  type,
-  register,
+export const TextInput: FC<TextInputProps> = ({
   label,
-  required = false,
-  validationOptions,
-  error,
-  errorTextColor = "text-red-500",
-  errorBgColor = "bg-red-100",
-  errorBorderColor = "border-red-700",
+  value = "",
+  onChange,
+  debounced = false,
 }) => {
+  const { showNotification, hideNotification } = useUiStore();
+  const [innerValue, setInnerValue] = useState(value);
+
+  const debouncedOnChange = useDebounce(() => {
+    onChange && onChange(innerValue);
+    hideNotification();
+  }, 500);
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setInnerValue(event.target.value);
+    if (debounced) {
+      showNotification("Results are being searched for...", "info");
+      debouncedOnChange();
+    } else {
+      onChange && onChange(event.target.value);
+    }
+  };
+
+  useEffect(() => {
+    if (value !== innerValue && !debounced) {
+      setInnerValue(value);
+    }
+  }, [value, innerValue, debounced]);
+
   return (
-    <div className={"py-2"}>
-      {label && (
-        <label htmlFor={id} className="block text-sm font-medium">
-          {label}
-        </label>
-      )}
+    <div className="flex flex-col">
+      <label className="mb-2 text-sm font-medium text-gray-200">{label}</label>
       <input
-        id={id}
-        type={type}
-        {...register(id, {
-          required: required ? "This field is required" : false,
-          ...validationOptions,
-        })}
-        className={`block w-full p-2 text-primary border ${
-          error ? errorBorderColor : "border-gray-300"
-        } rounded focus:outline-none focus:border-blue-500`}
+        type="text"
+        className="text-black p-2 border rounded-md border-gray-300 focus:outline-none focus:border-blue-500 transition-colors"
+        value={innerValue}
+        onChange={handleChange}
       />
-      {error && (
-        <p
-          className={`${errorTextColor} text-s mt-1 border-2 ${errorBgColor} p-2`}
-        >
-          {error.message}
-        </p>
-      )}
     </div>
   );
 };

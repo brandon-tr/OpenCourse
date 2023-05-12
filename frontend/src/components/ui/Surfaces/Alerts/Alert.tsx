@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect } from "react";
 import { useUiStore } from "@/components/store/Store";
 import getClassNames from "@/components/utility/GetClassNames";

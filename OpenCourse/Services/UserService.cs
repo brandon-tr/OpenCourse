@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OpenCourse.Data;
 using OpenCourse.Data.DTOs.Response;
 using OpenCourse.Exceptions;
@@ -94,6 +95,56 @@ public class UserService : IUserInterface
             }).ToList()
         };
         return userResponseDto;
+    }
+
+    public async Task<ActionResult<PagedUsersResponseDto>> GetAllUsersAsync(PagingParameters pagingParameters)
+    {
+        // Get the queryable users list
+        var users = _context.User.AsQueryable();
+
+        // Filter users based on the search term
+        if (!string.IsNullOrEmpty(pagingParameters.Search))
+            users = users.Where(u => u.FirstName.Contains(pagingParameters.Search) ||
+                                     u.LastName.Contains(pagingParameters.Search) ||
+                                     u.Id.ToString().Equals(pagingParameters.Search) ||
+                                     u.Email.Contains(pagingParameters.Search));
+
+        // Get the total count of users
+        var count = await users.CountAsync();
+
+        // Apply pagination
+        users = users.Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
+            .Take(pagingParameters.PageSize);
+
+        // Fetch the required users from database and map them to the DTO
+        var usersList = await users.Select(user => new GetAllUsersResponseDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Avatar = user.Avatar,
+            IsBanned = user.IsBanned,
+            UserRoles = user.UserRoles.Select(userRole => new UserRoleResponseDto
+            {
+                Id = userRole.Role.Id,
+                Name = userRole.Role.Name,
+                Level = userRole.Role.Level
+            }).ToList()
+        }).ToListAsync();
+
+
+        // Prepare the paged response
+        var pagedResponse = new PagedUsersResponseDto
+        {
+            Users = usersList,
+            CurrentPage = pagingParameters.PageNumber,
+            PageSize = pagingParameters.PageSize,
+            TotalCount = count,
+            TotalPages = (int)Math.Ceiling(count / (double)pagingParameters.PageSize)
+        };
+
+        return pagedResponse;
     }
 
     private async Task<bool> CheckEmailAsync(string email)

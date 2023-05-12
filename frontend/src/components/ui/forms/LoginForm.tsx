@@ -3,9 +3,10 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
-import { TextInput } from "@/components/ui/inputs/TextInput";
-import Alert from "@/components/ui/Surfaces/Alert";
-import { useUiStore } from "@/components/store/Store"; // Import the useUiStore hook
+import { TextInputForms } from "@/components/ui/inputs/TextInputForms";
+import Alert from "@/components/ui/Surfaces/Alerts/Alert";
+import { useUiStore } from "@/components/store/Store";
+import { useRouter } from "next/navigation"; // Import the useUiStore hook
 
 type FormData = {
   email: string;
@@ -18,6 +19,7 @@ const LoginForm: React.FC = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
+  const router = useRouter();
 
   // Access the showAlert and hideAlert functions from the store
   const showAlert = useUiStore((state) => state.showAlert);
@@ -38,6 +40,9 @@ const LoginForm: React.FC = () => {
       showAlert(json.error, "error"); // Show the error alert with the error message
     } else if (json.status === 200) {
       showAlert(json.message, "success"); // Show the success alert
+      setTimeout(() => {
+        router.push("/courses");
+      }, 3000);
     } else {
       showAlert("Unknown error", "error"); // Show the error alert
     }
@@ -48,7 +53,7 @@ const LoginForm: React.FC = () => {
       {process.env.NEXT_PUBLIC_API_ROUTE}
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
-          <TextInput
+          <TextInputForms
             id="email"
             type="email"
             label="Email"
@@ -67,7 +72,7 @@ const LoginForm: React.FC = () => {
             }}
           />
 
-          <TextInput
+          <TextInputForms
             id="password"
             type="password"
             label="Password"

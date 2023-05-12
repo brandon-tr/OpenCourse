@@ -6,6 +6,7 @@ import { useUiStore } from "@/components/store/Store";
 import HorizontalLine from "@/components/ui/Surfaces/HorizontalLine";
 import useClickOutside from "@/components/hooks/UseClickOutside";
 import getClassNames from "@/components/utility/GetClassNames";
+import { usePathname } from "next/navigation";
 
 interface SideNavProps {
   items: { title: string; link: string; category: string }[];
@@ -20,6 +21,7 @@ const SideNav: React.FC<SideNavProps> = ({
   isMobile = false,
   opacity = 85,
 }) => {
+  const pathName = usePathname();
   const appBarHeight = useUiStore((state) => state.appBarHeight);
   const navWidth = "16";
   const { width } = useWindowSize();
@@ -28,6 +30,8 @@ const SideNav: React.FC<SideNavProps> = ({
   const setIsOpen = useUiStore((state) => state.setIsSideNavOpen);
   const mobileBreakpoint = 768;
 
+  const [isScrolled, setIsScrolled] = useState(false); // New state to handle scrolled status
+
   useClickOutside(sideNavRef, (e: MouseEvent | TouchEvent) => {
     if (e.target instanceof HTMLElement && e.target.id !== "hamburger") {
       setIsOpen(false);
@@ -35,12 +39,23 @@ const SideNav: React.FC<SideNavProps> = ({
   });
 
   const shouldShowNav = () => {
-    console.log(isOpen);
     if (isMobile || (width && width <= mobileBreakpoint)) {
       return isOpen;
     }
     return true;
   };
+
+  // effect to listen to scroll events
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 0;
+      setIsScrolled(isScrolled);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   // Group links by category
   const linksByCategory = useMemo(() => {
@@ -61,7 +76,6 @@ const SideNav: React.FC<SideNavProps> = ({
 
     return result;
   }, [items]);
-
   return (
     <div className="flex">
       <div
@@ -71,7 +85,7 @@ const SideNav: React.FC<SideNavProps> = ({
           !shouldShowNav() && "translate-x-full pointer-events-none"
         )}
         style={{
-          top: appBarHeight,
+          top: isScrolled ? 0 : appBarHeight, // Change top value based on isScrolled state
           opacity: !shouldShowNav() ? 0 : opacity / 100,
         }}
       >
@@ -83,7 +97,9 @@ const SideNav: React.FC<SideNavProps> = ({
                 <div key={index}>
                   <Link
                     href={link.link}
-                    className="test3 hover:text-accent transition-colors duration-200 block"
+                    className={`test3 hover:text-accent transition-colors duration-200 block ${
+                      pathName === link.link ? "text-accent" : ""
+                    }`}
                   >
                     {link.title}
                   </Link>

@@ -6,15 +6,15 @@ public class WrongPasswordException : Exception
         "Sorry, the password you entered is incorrect. Please check your password and try again. " +
         "If you have forgotten your password, you can reset it using the 'forgot password' link.";
 
-    public WrongPasswordException()
+    public WrongPasswordException() : this(DefaultMessage)
     {
     }
 
-    public WrongPasswordException(string message) : base(message)
+    public WrongPasswordException(string message) : base(message ?? message)
     {
     }
 
-    public WrongPasswordException(string message, Exception inner) : base(message, inner)
+    public WrongPasswordException(string message, Exception inner) : base(message ?? DefaultMessage, inner)
     {
     }
 }
