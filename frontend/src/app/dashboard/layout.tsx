@@ -17,26 +17,26 @@ const items = [
 ];
 
 async function getData() {
+  "use server";
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/User/checkAdmin`,
       { cache: "no-store", headers: headers() }
     );
     if (response.status === 403) {
-      console.log("here 403");
       return redirect(
         `/login?errors=${process.env.NEXT_PUBLIC_ERRORS_UNAUTHORIZED}`
       );
     } else if (response.status === 401) {
-      console.log("here 401");
       return redirect(
         `/login?errors=${process.env.NEXT_PUBLIC_ERRORS_NOT_LOGGED_IN}`
       );
     }
     return true;
-  } catch (e) {
-    console.log(e);
-    return redirect(`/login?errors=unknown`);
+  } catch (e: any) {
+    if (e?.digest.includes("NEXT_REDIRECT")) {
+      return redirect(e.digest.split(";")[2]);
+    }
   }
 }
 
