@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { TextInput } from "@/components/ui/inputs/TextInput";
 import { UserPagination } from "@/app/dashboard/view/users/(list)/page";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
+import useWindowSize from "@/components/hooks/UseWindowSize";
 
 interface TableProps<T extends object> {
   data: T[];
@@ -64,6 +65,8 @@ const Table = <T extends object>({
     onPaginationChange: setPagination,
   });
 
+  console.log(useWindowSize());
+
   useEffect(() => {
     if (!loaded && pageIndex === 0) {
       setLoaded(true);
@@ -88,7 +91,7 @@ const Table = <T extends object>({
   }, [getData, globalFilter, pageIndex, pageSize]);
 
   return (
-    <div className="w-full">
+    <div className="w-full overflow-x-auto overflow-y-hidden">
       <div className="flex items-start mb-4">
         <TextInput
           label={"Filter"}
@@ -141,7 +144,7 @@ const Table = <T extends object>({
           ))}
         </tbody>
       </table>
-      <div className="flex justify-end items-end w-full mt-2 gap-2">
+      <div className="md:sticky md:-left-0 flex justify-end items-end w-full mt-2 gap-2">
         <MaterialButton
           size={"small"}
           onClick={() => table.setPageIndex(0)}

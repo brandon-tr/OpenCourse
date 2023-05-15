@@ -22,7 +22,7 @@ const CenteredLayout: React.FC<CenteredLayoutProps> = ({
     >
       <div
         className={getClassNames(
-          "w-full max-w-screen-xl p-4 rounded-md",
+          "w-full md:max-w-md lg:max-w-screen-xl p-4 rounded-md",
           className
         )}
       >

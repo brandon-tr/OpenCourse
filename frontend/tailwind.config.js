@@ -6,6 +6,13 @@ module.exports = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    screens: {
+      "2xl": { max: "1735px" },
+      xl: { max: "1579px" },
+      lg: { max: "1223px" },
+      md: { max: "950px" },
+      sm: { max: "639px" },
+    },
     extend: {
       translate: {
         "-full": "-100%",
