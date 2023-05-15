@@ -17,7 +17,7 @@ function Card({
   children,
   action,
   centerTitle = false,
-  removeBg = false,
+  removeBg = true,
   bgColor,
   isMobile = false,
 }: CardProps) {

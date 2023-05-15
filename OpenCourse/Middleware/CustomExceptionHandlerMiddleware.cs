@@ -5,7 +5,27 @@ namespace OpenCourse.Middlewares;
 
 public class CustomExceptionHandlerMiddleware
 {
+    private static readonly Dictionary<Type, HttpStatusCode> ExceptionStatusCodes = new()
+    {
+        { typeof(UserNotFoundException), HttpStatusCode.NotFound },
+        { typeof(ArgumentNullException), HttpStatusCode.BadRequest },
+        { typeof(EmptyBodyException), HttpStatusCode.BadRequest },
+        { typeof(UserAlreadySignedInException), HttpStatusCode.BadRequest },
+        { typeof(EmailAlreadyExistsException), HttpStatusCode.BadRequest },
+        { typeof(WrongPasswordException), HttpStatusCode.Unauthorized },
+        { typeof(UnauthorizedException), HttpStatusCode.Unauthorized },
+        { typeof(ForbiddenException), HttpStatusCode.Forbidden },
+        { typeof(RoleNotFoundException), HttpStatusCode.NotFound },
+        { typeof(DatabaseFailedConnectionException), HttpStatusCode.ServiceUnavailable },
+        { typeof(ConcurrencyException), HttpStatusCode.Conflict },
+        { typeof(BadRolePutException), HttpStatusCode.BadRequest },
+        { typeof(RoleDoesNotExistException), HttpStatusCode.BadRequest },
+        { typeof(RoleExistsException), HttpStatusCode.BadRequest }
+    };
+
+
     private readonly RequestDelegate _next;
+
 
     public CustomExceptionHandlerMiddleware(RequestDelegate next)
     {
@@ -28,44 +48,15 @@ public class CustomExceptionHandlerMiddleware
     {
         context.Response.ContentType = "application/json";
 
-        if (exception is UserNotFoundException)
+        if (ExceptionStatusCodes.TryGetValue(exception.GetType(), out var statusCode))
         {
-            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-            await context.Response.WriteAsJsonAsync(new { error = exception.Message }).ConfigureAwait(false);
-        }
-        else if (exception is ArgumentNullException)
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            await context.Response.WriteAsJsonAsync(new { error = exception.Message }).ConfigureAwait(false);
-        }
-        else if (exception is UserAlreadySignedInException)
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            await context.Response.WriteAsJsonAsync(new { error = exception.Message }).ConfigureAwait(false);
-        }
-        else if (exception is EmailAlreadyExistsException)
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            await context.Response.WriteAsJsonAsync(new { error = exception.Message }).ConfigureAwait(false);
-        }
-        else if (exception is WrongPasswordException)
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            await context.Response.WriteAsJsonAsync(new { error = exception.Message }).ConfigureAwait(false);
-        }
-        else if (exception is UnauthorizedException)
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            await context.Response.WriteAsJsonAsync(new { error = exception.Message }).ConfigureAwait(false);
-        }
-        else if (exception is ForbiddenException)
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+            context.Response.StatusCode = (int)statusCode;
             await context.Response.WriteAsJsonAsync(new { error = exception.Message }).ConfigureAwait(false);
         }
         else
         {
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            Console.WriteLine(exception.Message);
             await context.Response.WriteAsJsonAsync(new
             {
                 error = "An unexpected error has occurred. Our team has been notified of the issue, " +

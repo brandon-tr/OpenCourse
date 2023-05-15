@@ -76,6 +76,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         };
     });
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<RoleService>();
 
 var app = builder.Build();
 

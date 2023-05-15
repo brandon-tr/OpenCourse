@@ -4,6 +4,7 @@ interface MaterialButtonProps
   spacingTop?: number;
   spacingBottom?: number;
   rounded?: boolean;
+  color?: "primary" | "secondary" | "danger"; // Add this line
 }
 
 const MaterialButton: React.FC<MaterialButtonProps> = ({
@@ -11,6 +12,7 @@ const MaterialButton: React.FC<MaterialButtonProps> = ({
   spacingTop = 0,
   spacingBottom = 0,
   rounded = false,
+  color = "primary", // Add this line
   children,
   ...props
 }) => {
@@ -21,6 +23,13 @@ const MaterialButton: React.FC<MaterialButtonProps> = ({
     full: "py-2 px-4 text-base w-full",
   };
 
+  const colorClasses = {
+    // Add this block
+    primary: "bg-primary-light hover:bg-green-700",
+    secondary: "bg-secondary hover:bg-green-700",
+    danger: "bg-danger hover:bg-red-700",
+  };
+
   const style = {
     marginTop: `${spacingTop * 0.25}rem`,
     marginBottom: `${spacingBottom * 0.25}rem`,
@@ -29,7 +38,7 @@ const MaterialButton: React.FC<MaterialButtonProps> = ({
 
   return (
     <button
-      className={`bg-primary-light hover:bg-green-700 text-white font-semibold ${sizeClasses[size]}`}
+      className={`${colorClasses[color]} text-white font-semibold ${sizeClasses[size]}`} // Modify this line
       style={style}
       {...props}
     >

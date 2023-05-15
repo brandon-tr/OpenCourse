@@ -1,11 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
 import { TextInputForms } from "@/components/ui/inputs/TextInputForms";
 import { useUiStore } from "@/components/store/Store";
 import Alert from "@/components/ui/Surfaces/Alerts/Alert";
+import {
+  GetAllUsersResponseDto,
+  UserRoleResponseDto,
+} from "@/app/dashboard/view/users/(list)/page";
+import { useRouter } from "next/navigation";
+import Select from "react-select";
+import MaterialSelect from "@/components/ui/inputs/MaterialSelect/MaterialSelect";
+import { arraysOfObjectsAreEqual } from "@/components/utility/CompareObjects";
 
 type FormData = {
   email: string;
@@ -13,31 +21,113 @@ type FormData = {
   lastName: string;
   password: string;
   confirmPassword: string;
+  isBanned: {
+    id: number;
+    name: string;
+  };
+  userRoles: UserRoleResponseDto[];
 };
 
-const RegistrationForm: React.FC = () => {
+interface UpdateUserFormProps {
+  user: GetAllUsersResponseDto;
+  role: UserRoleResponseDto[];
+}
+
+type SelectKeys = "role";
+
+const UpdateUserForm: React.FC<UpdateUserFormProps> = ({ user, role }) => {
   const {
     register,
     handleSubmit,
     watch,
+    reset,
+    control,
+    getValues,
     formState: { errors },
   } = useForm<FormData>();
-
+  const router = useRouter();
+  const [unchanged, setUnchanged] = React.useState({
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    password: "",
+    confirmPassword: "",
+    userRoles: user.userRoles,
+    isBanned: user.isBanned,
+  });
+  useEffect(() => {
+    if (user) {
+      reset({
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        password: "",
+        confirmPassword: "",
+        userRoles: user.userRoles,
+        isBanned: user.isBanned
+          ? { id: 0, name: "Banned" }
+          : { id: 1, name: "Not Banned" },
+      });
+    } else {
+      router.push("/dashboard?errors=unknown");
+    }
+  }, []);
   // Access the showAlert and hideAlert functions from the store
   const showAlert = useUiStore((state) => state.showAlert);
   const hideAlert = useUiStore((state) => state.hideAlert);
 
   const onSubmit = async (data: FormData) => {
-    hideAlert(); // Hide any existing alert
+    hideAlert();
+    const isBannedId = data.isBanned.id;
+    const isBanned: boolean = isBannedId === 0;
+
+    //format data into proper format
+    const temp = {
+      id: user.id,
+      ...data,
+      isBanned: isBanned,
+    };
+
+    //Remove unchanged data
+    for (const key in temp) {
+      if (
+        temp[key as keyof typeof temp] ===
+        unchanged[key as keyof typeof unchanged]
+      ) {
+        delete temp[key as keyof typeof temp];
+      }
+    }
+
+    let equal = arraysOfObjectsAreEqual(data.userRoles, unchanged.userRoles);
+    if (!equal) {
+      temp.userRoles = data.userRoles;
+    }
+
+    const formattedData = {
+      id: temp.id,
+      email: temp.email,
+      firstName: temp.firstName,
+      lastName: temp.lastName,
+      password: temp.password,
+      isBanned: temp.isBanned,
+      userRoles: !equal ? temp.userRoles : undefined,
+    };
+
+    if (Object.keys(JSON.parse(JSON.stringify(formattedData))).length <= 1) {
+      showAlert("No changes made", "error");
+      return;
+    }
+
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/User/register`,
+      `${process.env.NEXT_PUBLIC_API_URL}/User/UpdateUser`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formattedData),
       }
     );
     const json = await response.json();
+
     if (json.error) {
       showAlert(json.error, "error"); // Show the error alert with the error message
     } else if (json.status === 200) {
@@ -56,7 +146,6 @@ const RegistrationForm: React.FC = () => {
             type="email"
             label="Email"
             register={register}
-            required
             error={errors.email}
             validationOptions={{
               minLength: {
@@ -79,7 +168,6 @@ const RegistrationForm: React.FC = () => {
             type="text"
             label="First Name"
             register={register}
-            required
             error={errors.firstName}
             validationOptions={{
               minLength: {
@@ -102,7 +190,6 @@ const RegistrationForm: React.FC = () => {
             type="text"
             label="Last Name"
             register={register}
-            required
             error={errors.lastName}
             validationOptions={{
               minLength: {
@@ -125,7 +212,6 @@ const RegistrationForm: React.FC = () => {
             type="password"
             label="Password"
             register={register}
-            required
             error={errors.password}
             validationOptions={{
               minLength: {
@@ -147,7 +233,6 @@ const RegistrationForm: React.FC = () => {
             id="confirmPassword"
             type="password"
             label="Confirm Password"
-            required
             register={register}
             validationOptions={{
               minLength: {
@@ -167,10 +252,36 @@ const RegistrationForm: React.FC = () => {
             }}
             error={errors.confirmPassword}
           />
-
+          <div className={"mt-2"}>
+            <MaterialSelect
+              options={role}
+              isMulti={true}
+              label={"Role"}
+              id={"role"}
+              control={control}
+              name={"userRoles"}
+            />
+          </div>
+          <div className={"mt-2"}>
+            <MaterialSelect
+              options={[
+                { id: 0, name: "Banned" },
+                { id: 1, name: "Unbanned" },
+              ]}
+              label={"Banned"}
+              id={"banned"}
+              control={control}
+              name={"isBanned"}
+            />
+          </div>
           <div className={"flex justify-center"}>
-            <MaterialButton spacingTop={4} type="submit" size={"full"}>
-              Register
+            <MaterialButton
+              spacingTop={4}
+              type="submit"
+              size={"full"}
+              color={"secondary"}
+            >
+              Update
             </MaterialButton>
           </div>
         </div>
@@ -180,4 +291,4 @@ const RegistrationForm: React.FC = () => {
   );
 };
 
-export default RegistrationForm;
+export default UpdateUserForm;

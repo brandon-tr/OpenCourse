@@ -10,7 +10,8 @@ import {
 import { FC } from "react";
 import Image from "next/image";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
+import MaterialButton from "@/components/ui/inputs/MaterialButton";
 
 interface TableUsersProps {
   paginationData: UserPagination;
@@ -20,7 +21,6 @@ async function getData(pageNumber: number, pageSize: number, search: string) {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/User/GetAllUsers?PageNumber=${pageNumber}&PageSize=${pageSize}&Search=${search}`,
     {
-      cache: "default",
       credentials: "include",
     }
   );
@@ -37,6 +37,7 @@ async function getData(pageNumber: number, pageSize: number, search: string) {
 }
 
 const TableUsers: FC<TableUsersProps> = ({ paginationData }) => {
+  const router = useRouter();
   const columnHelper = createColumnHelper<GetAllUsersResponseDto>();
   const columns = [
     columnHelper.accessor("avatar", {
@@ -90,6 +91,22 @@ const TableUsers: FC<TableUsersProps> = ({ paginationData }) => {
           .join(", "),
       header: () => <span>Roles</span>,
       footer: (info) => info.column.id,
+    }),
+    columnHelper.display({
+      id: "actions",
+      cell: (info) => (
+        <div className="flex justify-center gap-2">
+          <MaterialButton
+            onClick={() =>
+              router.push(`/dashboard/view/users/${info.row.original.id}`)
+            }
+          >
+            Edit
+          </MaterialButton>
+          <MaterialButton color={"danger"}>Delete</MaterialButton>
+        </div>
+      ),
+      header: () => <span>Actions</span>,
     }),
   ];
   return (

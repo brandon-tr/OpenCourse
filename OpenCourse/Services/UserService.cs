@@ -35,6 +35,7 @@ public class UserService : IUserInterface
             LastName = user.LastName,
             UserRoles = user.UserRoles.Select(ur => new UserRoleResponseDto
             {
+                Id = ur.Role.Id,
                 Name = ur.Role.Name,
                 Level = ur.Role.Level
             }).ToList()
@@ -147,6 +148,17 @@ public class UserService : IUserInterface
         return pagedResponse;
     }
 
+    public async Task<List<UserRoleResponseDto>> GetAllRolesAsync()
+    {
+        var roles = await _context.Role.Select(r => new UserRoleResponseDto
+        {
+            Id = r.Id,
+            Name = r.Name,
+            Level = r.Level
+        }).ToListAsync().ConfigureAwait(false);
+        return roles;
+    }
+
     private async Task<bool> CheckEmailAsync(string email)
     {
         return await _context.User.AnyAsync(u => u.Email == email).ConfigureAwait(false);
@@ -155,6 +167,35 @@ public class UserService : IUserInterface
     public async Task UpdateUserAsync(User user)
     {
         _context.Update(user);
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    public async Task UpdateUserAsync(UserUpdateDto user)
+    {
+        var userToUpdate = await _context.User.FirstAsync(u => u.Id == user.Id).ConfigureAwait(false);
+        if (userToUpdate == null) throw new UserNotFoundException();
+        if (user.FirstName is not null) userToUpdate.FirstName = user.FirstName;
+        if (user.LastName is not null) userToUpdate.LastName = user.LastName;
+        if (user.Email is not null) userToUpdate.Email = user.Email;
+        if (user.Avatar is not null) userToUpdate.Avatar = user.Avatar;
+        if (user.IsBanned is not null) userToUpdate.IsBanned = (bool)user.IsBanned;
+        if (user.Password is not null) userToUpdate.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(user.Password);
+        if (user.UserRoles is not null)
+        {
+            // Remove existing UserRoles
+            var userRolesToRemove = _context.UserRoles.Where(ur => ur.UserId == user.Id);
+            _context.UserRoles.RemoveRange(userRolesToRemove);
+
+            userToUpdate.UserRoles = user.UserRoles.Select(ur => new UserRole
+            {
+                RoleId = ur.Id,
+                UserId = user.Id
+            }).ToList();
+        }
+
+        _context.Update(userToUpdate);
+
+
         await _context.SaveChangesAsync().ConfigureAwait(false);
     }
 }

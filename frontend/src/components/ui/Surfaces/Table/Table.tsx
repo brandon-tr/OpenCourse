@@ -72,6 +72,7 @@ const Table = <T extends object>({
     if (!globalFilter) {
       getData(pageIndex + 1, pageSize, globalFilter).then((data) => {
         setTableData(data.value.users);
+        setPageCount(data.value.totalPages);
       });
     } else {
       if (globalFilterOld !== globalFilter) {

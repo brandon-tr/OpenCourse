@@ -78,6 +78,14 @@ public class UserController : ControllerBase
         return Ok(new { message = "Welcome back " + user.FirstName, status = 200 });
     }
 
+    [HttpPost("UpdateUser")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<User>> UpdateUser([FromBody] UserUpdateDto user)
+    {
+        await _userService.UpdateUserAsync(user);
+        return Ok(new { message = "User updated", status = 200 });
+    }
+
     [HttpGet("checkAdmin")]
     [Authorize(Roles = "Admin")]
     public ActionResult CheckAdmin()

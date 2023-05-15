@@ -16,6 +16,8 @@ export interface GetAllUsersResponseDto {
   lastName: string;
   avatar?: string;
   isBanned: boolean;
+  password?: string;
+  confirmPassword?: string;
   userRoles: UserRoleResponseDto[];
 }
 
@@ -30,6 +32,7 @@ export interface UserPagination {
 }
 
 async function getData() {
+  "use server";
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/User/GetAllUsers?PageNumber=1&PageSize=10`,
     {

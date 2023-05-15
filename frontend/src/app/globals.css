@@ -15,7 +15,7 @@ body {
 }
 
 .box-hover:hover {
-    color: theme('backgroundColor.accent'); /* Add the primary color from the palette when hovered */
+    color: theme('colors.accent'); /* Add the primary color from the palette when hovered */
 }
 
 .box-hover::after {
@@ -31,7 +31,7 @@ body {
 }
 
 .box-hover:hover::after {
-    border: 1px solid theme('backgroundColor.accent');
+    border: 1px solid theme('colors.accent');
     width: 100%;
     height: 100%;
     padding-left: 19px;
@@ -41,12 +41,12 @@ body {
 
 .box-selected {
     position: relative;
-    border: 1px solid theme('backgroundColor.accent');
+    border: 1px solidtheme('colors.accent');
     padding-left: 19px;
     padding-right: 19px;
     transition: width 0.3s ease, height 0.3s ease, padding 0.3s ease, transform 0.3s ease;
     box-sizing: border-box;
-    color: theme('backgroundColor.accent'); /* Add the primary color from the palette when selected */
+    color: theme('colors.accent'); /* Add the primary color from the palette when selected */
 }
 
 .box-selected::after {
@@ -64,7 +64,7 @@ body {
 
 
 .box-selected.box-hover:hover::after {
-    border: 1px solid theme('backgroundColor.accent');
+    border: 1px solid theme('colors.accent');
     width: 100%;
     height: 100%;
     padding-left: 19px;
@@ -85,9 +85,17 @@ body {
 }
 
 .hamburger-bar {
-    background-color: theme('backgroundColor.accent');
+    background-color: theme('colors.accent');
     border-radius: 4px;
     height: 3px;
     width: 100%;
 }
 
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}

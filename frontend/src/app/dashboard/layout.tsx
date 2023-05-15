@@ -3,6 +3,7 @@ import SideNav from "@/components/ui/layout/SideNav";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import isMobileDevice from "@/components/utility/IsMobileDevice";
+import CheckError from "@/components/utility/CheckNextRedirectError";
 
 const items = [
   { title: "Dashboard", link: "/dashboard", category: "home" },
@@ -34,13 +35,12 @@ async function getData() {
     }
     return true;
   } catch (e: any) {
-    if (e?.digest.includes("NEXT_REDIRECT")) {
-      return redirect(e.digest.split(";")[2]);
-    }
+    CheckError(e);
+    return redirect(`/login?errors=unknown`);
   }
 }
 
-export default async function RootLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
