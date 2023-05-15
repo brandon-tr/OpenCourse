@@ -115,7 +115,7 @@ const SideNav: React.FC<SideNavProps> = ({
         </nav>
       </div>
       <div
-        className="w-full"
+        className="w-full box-content"
         style={{
           paddingLeft: width && width > mobileBreakpoint ? navWidth + "rem" : 0,
           filter:
