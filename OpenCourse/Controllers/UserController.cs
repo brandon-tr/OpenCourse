@@ -23,7 +23,7 @@ public class UserController : ControllerBase
 
     // GET USER WITH ID: api/Authentication/{id}
     [HttpGet("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Moderator")]
     public async Task<ActionResult<GetUserResponseDto>> GetUser(int id)
     {
         var user = await _userService.GetUserAsync(id).ConfigureAwait(false);
@@ -32,7 +32,7 @@ public class UserController : ControllerBase
 
     // GET ALL USERS PAGINATION WITH FILTER: api/Authentication/GetAllUsers
     [HttpGet("GetAllUsers")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Moderator")]
     public async Task<ActionResult<PagedUsersResponseDto>> GetAllUsers(
         [FromQuery] PagingParameters getAllUsersDto)
     {
@@ -79,15 +79,23 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("UpdateUser")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Moderator")]
     public async Task<ActionResult<User>> UpdateUser([FromBody] UserUpdateDto user)
     {
         await _userService.UpdateUserAsync(user);
         return Ok(new { message = "User updated", status = 200 });
     }
 
+    [HttpPost("ban/{id}")]
+    [Authorize(Roles = "Moderator, Admin")]
+    public async Task<ActionResult<User>> BanUser(int id)
+    {
+        await _userService.BanUserAsync(id, HttpContext);
+        return Ok(new { message = "User banned", status = 200 });
+    }
+
     [HttpGet("checkAdmin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Moderator")]
     public ActionResult CheckAdmin()
     {
         return Ok(new { message = "Approved", status = 200 });
@@ -98,10 +106,16 @@ public class UserController : ControllerBase
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.FirstName + " " + user.LastName),
             new(ClaimTypes.Email, user.Email)
         };
 
-        foreach (var userRole in user.UserRoles) claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+        foreach (var userRole in user.UserRoles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+            claims.Add(new Claim("RoleLevel", userRole.Role.Level.ToString()));
+        }
+
         return claims;
     }
 }

@@ -69,7 +69,7 @@ public class RoleController : ControllerBase
 
     // DELETE: api/Role/5
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Moderator")]
     public async Task<IActionResult> DeleteRole(int id)
     {
         await _roleService.DeleteRole(id);
@@ -82,7 +82,7 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet("GetAllRoles")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Moderator")]
     public async Task<ActionResult<List<Role>>> GetAllRoles()
     {
         var roles = await _roleService.GetAllRolesAsync().ConfigureAwait(false);

@@ -4,7 +4,7 @@ interface MaterialButtonProps
   spacingTop?: number;
   spacingBottom?: number;
   rounded?: boolean;
-  color?: "primary" | "secondary" | "danger"; // Add this line
+  color?: "primary" | "secondary" | "danger" | "warning"; // Add this line
 }
 
 const MaterialButton: React.FC<MaterialButtonProps> = ({
@@ -28,6 +28,7 @@ const MaterialButton: React.FC<MaterialButtonProps> = ({
     primary: "bg-primary-light hover:bg-green-700",
     secondary: "bg-secondary hover:bg-green-700",
     danger: "bg-danger hover:bg-red-700",
+    warning: "bg-warning hover:bg-yellow-700",
   };
 
   const style = {

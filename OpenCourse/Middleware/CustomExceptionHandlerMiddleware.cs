@@ -20,7 +20,8 @@ public class CustomExceptionHandlerMiddleware
         { typeof(ConcurrencyException), HttpStatusCode.Conflict },
         { typeof(BadRolePutException), HttpStatusCode.BadRequest },
         { typeof(RoleDoesNotExistException), HttpStatusCode.BadRequest },
-        { typeof(RoleExistsException), HttpStatusCode.BadRequest }
+        { typeof(RoleExistsException), HttpStatusCode.BadRequest },
+        { typeof(InsufficientPrivilegeException), HttpStatusCode.Forbidden }
     };
 
 

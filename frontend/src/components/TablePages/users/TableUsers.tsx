@@ -7,11 +7,13 @@ import {
   UserPagination,
   UserRoleResponseDto,
 } from "@/app/dashboard/view/users/(list)/page";
-import { FC } from "react";
+import { FC, useState } from "react";
 import Image from "next/image";
 import { headers } from "next/headers";
 import { redirect, useRouter } from "next/navigation";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
+import { useUiStore } from "@/components/store/Store";
+import Notification from "@/components/ui/Surfaces/Alerts/Notification";
 
 interface TableUsersProps {
   paginationData: UserPagination;
@@ -24,19 +26,40 @@ async function getData(pageNumber: number, pageSize: number, search: string) {
       credentials: "include",
     }
   );
-  if (response.status === 403)
-    return redirect(
-      `/login?errors=${process.env.NEXT_PUBLIC_ERRORS_UNAUTHORIZED}`
-    );
-  else if (response.status === 401) {
-    return redirect(
-      `/login?errors=${process.env.NEXT_PUBLIC_ERRORS_NOT_LOGGED_IN}`
-    );
-  }
+
   return response.json();
 }
 
+async function ban(id: number) {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/User/ban/${id}`,
+    {
+      method: "POST",
+      credentials: "include",
+    }
+  );
+  const json = await response.json();
+  if (response.status === 200) {
+    return {
+      message: json.message,
+      severity: "success" as "success",
+    };
+  } else {
+    return {
+      message: json.error,
+      severity: "error" as "error",
+    };
+  }
+}
+
 const TableUsers: FC<TableUsersProps> = ({ paginationData }) => {
+  const [data, setData] = useState(paginationData);
+  const showNotification = useUiStore((state) => state.showNotification);
+  const hideNotification = useUiStore((state) => state.hideNotification);
+  const [rowChange, setRowChange] = useState({
+    rowId: null,
+    newData: "",
+  });
   const router = useRouter();
   const columnHelper = createColumnHelper<GetAllUsersResponseDto>();
   const columns = [
@@ -103,6 +126,30 @@ const TableUsers: FC<TableUsersProps> = ({ paginationData }) => {
           >
             Edit
           </MaterialButton>
+          <MaterialButton
+            color={"warning"}
+            onClick={async () => {
+              hideNotification();
+              const response = await ban(info.row.original.id);
+              if (response.severity === "success") {
+                console.log(
+                  data.users.find((user) => user.id === info.row.original.id)
+                );
+                setData((prevData) => ({
+                  ...prevData,
+                  users: prevData.users.map((user) =>
+                    user.id === info.row.original.id
+                      ? { ...user, isBanned: true }
+                      : user
+                  ),
+                }));
+                info.row._valuesCache.isBanned = true;
+                showNotification(response.message, response.severity);
+              }
+            }}
+          >
+            Ban
+          </MaterialButton>
           <MaterialButton color={"danger"}>Delete</MaterialButton>
         </div>
       ),
@@ -110,12 +157,15 @@ const TableUsers: FC<TableUsersProps> = ({ paginationData }) => {
     }),
   ];
   return (
-    <Table
-      columns={columns}
-      data={paginationData.users}
-      paginationData={paginationData}
-      getData={getData}
-    />
+    <>
+      <Table
+        columns={columns}
+        data={data.users}
+        paginationData={data}
+        getData={getData}
+      />
+      <Notification />
+    </>
   );
 };
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenCourse.Data;
 using OpenCourse.Data.DTOs.Response;
@@ -146,6 +147,31 @@ public class UserService : IUserInterface
         };
 
         return pagedResponse;
+    }
+
+    public async Task BanUserAsync(int id, HttpContext httpContextAccessor)
+    {
+        var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
+            ?.Value;
+        if (int.Parse(requesterId) == id) throw new InsufficientPrivilegeException("You cannot ban yourself silly");
+        var user = await _context.User.Where(user => user.Id == id)
+            .Select(ur => new
+            {
+                User = ur,
+                RoleLevel = ur.UserRoles.Select(r => r.Role.Level)
+            }).FirstOrDefaultAsync().ConfigureAwait(false);
+        if (user == null) throw new UserNotFoundException();
+
+        var attemptedBanUserClaims =
+            httpContextAccessor.User.Claims.Where(cl => cl.Type == "RoleLevel")?.Max(m => m.Value);
+        if (attemptedBanUserClaims is null) throw new ForbiddenException();
+
+        var higherRank = int.Parse(attemptedBanUserClaims) >= user.RoleLevel.Max();
+        if (!higherRank) throw new InsufficientPrivilegeException();
+
+        user.User.IsBanned = true;
+        _context.Update(user.User);
+        await _context.SaveChangesAsync().ConfigureAwait(false);
     }
 
     public async Task<List<UserRoleResponseDto>> GetAllRolesAsync()

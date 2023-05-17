@@ -12,19 +12,17 @@ const CenteredLayout: React.FC<CenteredLayoutProps> = ({
   className,
   ...restProps
 }) => {
+  const centeredChild = centered ? "lg:max-w-lg" : "w-full md:max-w-md";
   return (
     <div
       className={getClassNames(
-        centered ? "flex justify-center mt-3 flex-grow" : "mt-3 flex-grow",
+        centered ? "lg:flex lg:justify-center" : "mt-3 flex-grow",
         className
       )}
       {...restProps}
     >
       <div
-        className={getClassNames(
-          "w-full md:max-w-md lg:max-w-screen-xl p-4 rounded-md",
-          className
-        )}
+        className={getClassNames(`${centeredChild} p-4 rounded-md`, className)}
       >
         {children}
       </div>

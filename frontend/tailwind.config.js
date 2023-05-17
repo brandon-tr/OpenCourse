@@ -7,9 +7,9 @@ module.exports = {
   ],
   theme: {
     screens: {
-      "2xl": { max: "1735px" },
-      xl: { max: "1579px" },
-      lg: { max: "1223px" },
+      "2xl": { min: "1735px" },
+      xl: { min: "1579px" },
+      lg: { min: "1223px" },
       md: { max: "950px" },
       sm: { max: "639px" },
     },
@@ -22,6 +22,11 @@ module.exports = {
           light: "#FF7F7F", // Light red
           DEFAULT: "#FF4D4D", // Normal red
           dark: "#B30000", // Dark red
+        },
+        warning: {
+          light: "#FFD97F", // Light yellow
+          DEFAULT: "#FFC04D", // Normal yellow
+          dark: "#B38F00", // Dark yellow
         },
         "primary-lightest": "#0F172A",
         "primary-light": "#374151",

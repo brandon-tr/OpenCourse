@@ -65,8 +65,6 @@ const Table = <T extends object>({
     onPaginationChange: setPagination,
   });
 
-  console.log(useWindowSize());
-
   useEffect(() => {
     if (!loaded && pageIndex === 0) {
       setLoaded(true);
