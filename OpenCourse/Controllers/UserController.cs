@@ -82,7 +82,7 @@ public class UserController : ControllerBase
     [Authorize(Roles = "Admin, Moderator")]
     public async Task<ActionResult<User>> UpdateUser([FromBody] UserUpdateDto user)
     {
-        await _userService.UpdateUserAsync(user);
+        await _userService.UpdateUserAsync(user, HttpContext);
         return Ok(new { message = "User updated", status = 200 });
     }
 

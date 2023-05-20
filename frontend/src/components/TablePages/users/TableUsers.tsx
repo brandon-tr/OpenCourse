@@ -44,9 +44,14 @@ async function ban(id: number) {
       message: json.message,
       severity: "success" as "success",
     };
-  } else {
+  } else if (json.error) {
     return {
       message: json.error,
+      severity: "error" as "error",
+    };
+  } else {
+    return {
+      message: "Something went wrong",
       severity: "error" as "error",
     };
   }
@@ -132,9 +137,6 @@ const TableUsers: FC<TableUsersProps> = ({ paginationData }) => {
               hideNotification();
               const response = await ban(info.row.original.id);
               if (response.severity === "success") {
-                console.log(
-                  data.users.find((user) => user.id === info.row.original.id)
-                );
                 setData((prevData) => ({
                   ...prevData,
                   users: prevData.users.map((user) =>
@@ -144,8 +146,8 @@ const TableUsers: FC<TableUsersProps> = ({ paginationData }) => {
                   ),
                 }));
                 info.row._valuesCache.isBanned = true;
-                showNotification(response.message, response.severity);
               }
+              showNotification(response.message, response.severity);
             }}
           >
             Ban

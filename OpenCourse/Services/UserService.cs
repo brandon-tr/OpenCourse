@@ -196,7 +196,7 @@ public class UserService : IUserInterface
         await _context.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    public async Task UpdateUserAsync(UserUpdateDto user)
+    public async Task UpdateUserAsync(UserUpdateDto user, HttpContext httpContextAccessor)
     {
         var userToUpdate = await _context.User.FirstAsync(u => u.Id == user.Id).ConfigureAwait(false);
         if (userToUpdate == null) throw new UserNotFoundException();
@@ -204,7 +204,15 @@ public class UserService : IUserInterface
         if (user.LastName is not null) userToUpdate.LastName = user.LastName;
         if (user.Email is not null) userToUpdate.Email = user.Email;
         if (user.Avatar is not null) userToUpdate.Avatar = user.Avatar;
-        if (user.IsBanned is not null) userToUpdate.IsBanned = (bool)user.IsBanned;
+        if (user.IsBanned is not null)
+        {
+            var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
+                ?.Value;
+            if (int.Parse(requesterId) == user.Id)
+                throw new InsufficientPrivilegeException("You cannot ban yourself silly");
+            userToUpdate.IsBanned = (bool)user.IsBanned;
+        }
+
         if (user.Password is not null) userToUpdate.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(user.Password);
         if (user.UserRoles is not null)
         {
