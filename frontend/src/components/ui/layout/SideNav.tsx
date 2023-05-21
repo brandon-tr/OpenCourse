@@ -9,7 +9,7 @@ import getClassNames from "@/components/utility/GetClassNames";
 import { usePathname } from "next/navigation";
 
 interface SideNavProps {
-  items: { title: string; link: string; category: string }[];
+  items: { title: string; link: string; category: string; visible: boolean }[];
   children: React.ReactNode;
   isMobile?: boolean;
   opacity?: number;
@@ -60,7 +60,7 @@ const SideNav: React.FC<SideNavProps> = ({
   // Group links by category
   const linksByCategory = useMemo(() => {
     const result: {
-      [category: string]: { title: string; link: string }[];
+      [category: string]: { title: string; link: string; visible: boolean }[];
     } = {};
 
     items.forEach((item) => {
@@ -68,9 +68,12 @@ const SideNav: React.FC<SideNavProps> = ({
         result[item.category].push({
           title: item.title,
           link: item.link,
+          visible: item.visible,
         });
       } else {
-        result[item.category] = [{ title: item.title, link: item.link }];
+        result[item.category] = [
+          { title: item.title, link: item.link, visible: item.visible },
+        ];
       }
     });
 
@@ -93,18 +96,21 @@ const SideNav: React.FC<SideNavProps> = ({
           {Object.entries(linksByCategory).map(([category, links], index) => (
             <div key={category} className="space-y-2 mb-2">
               <h3 className="text-white font-bold uppercase">{category}</h3>
-              {links.map((link, index) => (
-                <div key={index}>
-                  <Link
-                    href={link.link}
-                    className={`test3 hover:text-accent transition-colors duration-200 block ${
-                      pathName === link.link ? "text-accent" : ""
-                    }`}
-                  >
-                    {link.title}
-                  </Link>
-                </div>
-              ))}
+              {links.map(
+                (link, index) =>
+                  link.visible && (
+                    <div key={index}>
+                      <Link
+                        href={link.link}
+                        className={`test3 hover:text-accent transition-colors duration-200 block ${
+                          pathName === link.link ? "text-accent" : ""
+                        }`}
+                      >
+                        {link.title}
+                      </Link>
+                    </div>
+                  )
+              )}
               {index !== Object.entries(linksByCategory).length - 1 && (
                 <div className="mt-2">
                   <HorizontalLine />

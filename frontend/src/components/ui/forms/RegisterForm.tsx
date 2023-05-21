@@ -3,7 +3,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
-import { TextInputForms } from "@/components/ui/inputs/TextInputForms";
+import { TextInputForms } from "@/components/ui/inputs/FormInputs/TextInputForms";
 import { useUiStore } from "@/components/store/Store";
 import Alert from "@/components/ui/Surfaces/Alerts/Alert";
 

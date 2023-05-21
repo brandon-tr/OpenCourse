@@ -12,6 +12,7 @@ interface TextInputProps {
   errorTextColor?: string;
   errorBgColor?: string;
   errorBorderColor?: string;
+  multiple?: boolean;
 }
 
 export const TextInputForms: React.FC<TextInputProps> = ({
@@ -25,6 +26,7 @@ export const TextInputForms: React.FC<TextInputProps> = ({
   errorTextColor = "text-red-500",
   errorBgColor = "bg-red-100",
   errorBorderColor = "border-red-700",
+  multiple = false,
 }) => {
   return (
     <div className={"py-2"}>
@@ -36,6 +38,7 @@ export const TextInputForms: React.FC<TextInputProps> = ({
       <input
         id={id}
         type={type}
+        multiple={multiple}
         {...register(id, {
           required: required ? "This field is required" : false,
           ...validationOptions,

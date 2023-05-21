@@ -5,18 +5,6 @@ import { redirect } from "next/navigation";
 import isMobileDevice from "@/components/utility/IsMobileDevice";
 import CheckError from "@/components/utility/CheckNextRedirectError";
 
-const items = [
-  { title: "Dashboard", link: "/dashboard", category: "home" },
-  { title: "Site Settings", link: "/", category: "home" },
-  { title: "View Courses", link: "/", category: "views" },
-  { title: "View Users", link: "/dashboard/view/users", category: "views" },
-  { title: "View Stats", link: "/about", category: "views" },
-  { title: "Add Course", link: "/contact", category: "Add" },
-  { title: "Add User", link: "/contact", category: "Add" },
-  { title: "Modify Course", link: "/contact", category: "Modify" },
-  { title: "Modify User", link: "/contact", category: "Modify" },
-];
-
 async function getData() {
   "use server";
   try {
@@ -33,7 +21,7 @@ async function getData() {
         `/login?errors=${process.env.NEXT_PUBLIC_ERRORS_NOT_LOGGED_IN}`
       );
     }
-    return true;
+    return response.json();
   } catch (e: any) {
     CheckError(e);
     return redirect(`/login?errors=unknown`);
@@ -47,7 +35,42 @@ export default async function DashboardLayout({
 }) {
   const headersList = headers();
   const userAgent = headersList.get("user-agent");
-  await getData();
+  const res = await getData();
+  console.log(res);
+
+  const items = [
+    { title: "Dashboard", link: "/dashboard", category: "home", visible: true },
+    {
+      title: "Site Settings",
+      link: "/dashboard/site-settings",
+      category: "home",
+      visible: parseInt(res.level) > 2,
+    },
+    { title: "View Courses", link: "/", category: "views", visible: true },
+    {
+      title: "View Users",
+      link: "/dashboard/view/users",
+      category: "views",
+      visible: true,
+    },
+    { title: "View Stats", link: "/about", category: "views", visible: true },
+    { title: "Add Course", link: "/contact", category: "Add", visible: true },
+    { title: "Add User", link: "/contact", category: "Add", visible: true },
+    {
+      title: "Modify Course",
+      link: "/contact",
+      category: "Modify",
+      visible: true,
+    },
+    {
+      title: "Modify User",
+      link: "/contact",
+      category: "Modify",
+      visible: true,
+    },
+    { title: "Trash Bin", link: "/contact", category: "Trash", visible: true },
+  ];
+
   return (
     <CenteredLayout centered={false} className={""}>
       <SideNav items={items} isMobile={isMobileDevice(userAgent)}>

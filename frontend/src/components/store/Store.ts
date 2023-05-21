@@ -26,6 +26,11 @@ interface UiStore {
     severity: "success" | "info" | "warning" | "error"
   ) => void;
   hideNotification: () => void;
+  user: {
+    level: number;
+    loggedIn: boolean;
+  };
+  setUser: (user: { level: number; loggedIn: boolean }) => void;
 }
 
 export const useUiStore = create<UiStore>((set) => ({
@@ -69,4 +74,9 @@ export const useUiStore = create<UiStore>((set) => ({
         active: false,
       },
     })),
+  user: {
+    level: 0,
+    loggedIn: false,
+  },
+  setUser: (user) => set({ user }),
 }));

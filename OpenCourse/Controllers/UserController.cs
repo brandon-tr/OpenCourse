@@ -71,11 +71,11 @@ public class UserController : ControllerBase
         };
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(claimsIdentity), authProperties);
-
+        var roleLevel = claimsIdentity.FindAll("RoleLevel")?.Max(m => m.Value);
         user.LastLogIn = DateTime.UtcNow;
         user.LastLoginIp = HttpContext.Connection.RemoteIpAddress;
         await _userService.UpdateUserAsync(user);
-        return Ok(new { message = "Welcome back " + user.FirstName, status = 200 });
+        return Ok(new { message = "Welcome back " + user.FirstName, level = roleLevel, status = 200 });
     }
 
     [HttpPost("UpdateUser")]
@@ -98,7 +98,8 @@ public class UserController : ControllerBase
     [Authorize(Roles = "Admin, Moderator")]
     public ActionResult CheckAdmin()
     {
-        return Ok(new { message = "Approved", status = 200 });
+        var roleLevel = User.Claims.Where(c => c.Type == "RoleLevel").Max(m => m.Value);
+        return Ok(new { message = "Approved", level = roleLevel, status = 200 });
     }
 
     private static List<Claim> GenerateClaims(User user)

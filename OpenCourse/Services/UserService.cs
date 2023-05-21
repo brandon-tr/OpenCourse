@@ -11,13 +11,11 @@ namespace OpenCourse.Services;
 
 public class UserService : IUserInterface
 {
-    private readonly IConfiguration _configuration;
     private readonly OpenCourseContext _context;
 
-    public UserService(OpenCourseContext context, IConfiguration configuration)
+    public UserService(OpenCourseContext context)
     {
         _context = context;
-        _configuration = configuration;
     }
 
     public async Task<GetUserResponseDto> GetUserAsync(int id)
@@ -174,17 +172,6 @@ public class UserService : IUserInterface
         await _context.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    public async Task<List<UserRoleResponseDto>> GetAllRolesAsync()
-    {
-        var roles = await _context.Role.Select(r => new UserRoleResponseDto
-        {
-            Id = r.Id,
-            Name = r.Name,
-            Level = r.Level
-        }).ToListAsync().ConfigureAwait(false);
-        return roles;
-    }
-
     private async Task<bool> CheckEmailAsync(string email)
     {
         return await _context.User.AnyAsync(u => u.Email == email).ConfigureAwait(false);
@@ -198,6 +185,8 @@ public class UserService : IUserInterface
 
     public async Task UpdateUserAsync(UserUpdateDto user, HttpContext httpContextAccessor)
     {
+        var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
+            ?.Value;
         var userToUpdate = await _context.User.FirstAsync(u => u.Id == user.Id).ConfigureAwait(false);
         if (userToUpdate == null) throw new UserNotFoundException();
         if (user.FirstName is not null) userToUpdate.FirstName = user.FirstName;
@@ -206,8 +195,6 @@ public class UserService : IUserInterface
         if (user.Avatar is not null) userToUpdate.Avatar = user.Avatar;
         if (user.IsBanned is not null)
         {
-            var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
-                ?.Value;
             if (int.Parse(requesterId) == user.Id)
                 throw new InsufficientPrivilegeException("You cannot ban yourself silly");
             userToUpdate.IsBanned = (bool)user.IsBanned;
@@ -216,6 +203,14 @@ public class UserService : IUserInterface
         if (user.Password is not null) userToUpdate.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(user.Password);
         if (user.UserRoles is not null)
         {
+            var highestRole =
+                httpContextAccessor.User.Claims.Where(cl => cl.Type == "RoleLevel")?.Max(m => m.Value);
+            var newHighestRole = user.UserRoles.Max(ur => ur.Level);
+            if (int.Parse(requesterId) == user.Id && int.Parse(highestRole) > newHighestRole)
+                throw new InsufficientPrivilegeException("You cannot change your own role to a lower one");
+            if (int.Parse(requesterId) == user.Id && int.Parse(highestRole) < newHighestRole)
+                throw new InsufficientPrivilegeException("You cannot change your own role to a higher one");
+
             // Remove existing UserRoles
             var userRolesToRemove = _context.UserRoles.Where(ur => ur.UserId == user.Id);
             _context.UserRoles.RemoveRange(userRolesToRemove);

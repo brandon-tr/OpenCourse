@@ -17,6 +17,8 @@ public class OpenCourseContext : DbContext
     public DbSet<User> User { get; set; } = default!;
     public DbSet<UserRole> UserRoles { get; set; } = default!;
     public DbSet<Role> Role { get; set; } = default!;
+    public DbSet<SiteSettings> SiteSetting { get; set; } = default!;
+    public DbSet<TrashBin> TrashBin { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +26,11 @@ public class OpenCourseContext : DbContext
         RoleDataGenerator roleDataGenerator = new(modelBuilder);
         var roles = roleDataGenerator.GenerateDefaultRoles();
         modelBuilder.Entity<Role>().HasData(roles);
+        var siteSettings = new SiteSettings
+        {
+            Id = 1
+        };
+        modelBuilder.Entity<SiteSettings>().HasData(siteSettings);
 
         /* Only seed User table and UserRole table in Development  */
         if (_env.IsDevelopment())

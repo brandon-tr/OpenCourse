@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import CheckError from "@/components/utility/CheckNextRedirectError";
 import UpdateUserForm from "@/components/ui/forms/UpdateUserForm";
+import { Metadata, ResolvingMetadata } from "next";
 
 async function getUserData(id: number) {
   "use server";
@@ -37,6 +38,31 @@ async function getRoleData(id: number) {
   } catch (e) {
     return redirect(`/dashboard?errors=unknown`);
   }
+}
+
+type Props = {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent?: ResolvingMetadata
+): Promise<Metadata> {
+  // read route params
+  const id = params.id;
+
+  // fetch data
+  const data = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/User/${Number.parseInt(String(id))}`,
+    {
+      headers: headers(),
+    }
+  ).then((res) => res.json());
+
+  return {
+    title: "Update " + data.firstName + " " + data.lastName,
+  };
 }
 
 export default async function Home({ params }: { params: { id: number } }) {

@@ -8,6 +8,7 @@ import { useUiStore } from "@/components/store/Store";
 import React, { useCallback, useEffect } from "react";
 import useWindowSize from "@/components/hooks/UseWindowSize";
 import { usePathname } from "next/navigation";
+import { useLocalStorage } from "@/components/hooks/UseLocalStorage";
 
 type WithLogoSrc = {
   isLogoText: false;
@@ -27,7 +28,6 @@ type AppBarProps = LogoProps & {
   logoAlt?: string;
   avatarSrc?: string;
   badgeText?: string;
-  items: { title: string; link: string }[];
   roundedLogo?: boolean;
   isMobile?: boolean;
 };
@@ -39,16 +39,43 @@ const AppBar: React.FC<AppBarProps> = ({
   logoAlt,
   avatarSrc,
   badgeText,
-  items,
   roundedLogo = true,
   isMobile = false,
 }) => {
   const pathName = usePathname();
+  const [storedValue, setStoredValue] = useLocalStorage("user", {
+    level: 0,
+    loggedIn: false,
+  });
   const { ref, height } = useResizeObserver();
   const setAppBarHeight = useUiStore((state) => state.setAppBarHeight);
   const setIsSideNavOpen = useUiStore((state) => state.setIsSideNavOpen);
   const isSideNavOpen = useUiStore((state) => state.isSideNavOpen);
   const { width } = useWindowSize();
+  const user = useUiStore((state) => state.user);
+  const setUser = useUiStore((state) => state.setUser);
+
+  const items = [
+    {
+      title: "Home",
+      link: "/",
+      visible: true,
+    },
+    { title: "FAQ", link: "/faq", visible: true },
+    { title: "Register", link: "/register", visible: !user.loggedIn },
+    { title: "Login", link: "/login", visible: !user.loggedIn },
+    {
+      title: "Dashboard",
+      link: "/dashboard",
+      visible: user.loggedIn && user.level > 1,
+    },
+  ];
+
+  useEffect(() => {
+    if (storedValue.loggedIn) {
+      setUser(storedValue);
+    }
+  }, [setUser, storedValue, user]);
 
   useEffect(() => {
     if (height !== null) {
@@ -104,15 +131,18 @@ const AppBar: React.FC<AppBarProps> = ({
           }`}
         >
           <nav className="flex items-center space-x-4 ml-4">
-            {items.map((item, index) => (
-              <Link
-                key={index}
-                href={item.link}
-                className="hover:text-accent transition-colors duration-200"
-              >
-                {item.title}
-              </Link>
-            ))}
+            {items.map(
+              (item, index) =>
+                item.visible && (
+                  <Link
+                    key={index}
+                    href={item.link}
+                    className="hover:text-accent transition-colors duration-200"
+                  >
+                    {item.title}
+                  </Link>
+                )
+            )}
           </nav>
           {avatarSrc && (
             <div className="ml-4">

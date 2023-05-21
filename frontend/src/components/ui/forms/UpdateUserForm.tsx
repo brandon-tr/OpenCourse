@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
-import { TextInputForms } from "@/components/ui/inputs/TextInputForms";
+import { TextInputForms } from "@/components/ui/inputs/FormInputs/TextInputForms";
 import { useUiStore } from "@/components/store/Store";
 import Alert from "@/components/ui/Surfaces/Alerts/Alert";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/app/dashboard/view/users/(list)/page";
 import { useRouter } from "next/navigation";
 import Select from "react-select";
-import MaterialSelect from "@/components/ui/inputs/MaterialSelect/MaterialSelect";
+import MaterialSelect from "@/components/ui/inputs/FormInputs/MaterialSelect/MaterialSelect";
 import { arraysOfObjectsAreEqual } from "@/components/utility/CompareObjects";
 
 type FormData = {

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 
@@ -6,6 +7,13 @@ namespace OpenCourse.Model;
 
 public class User
 {
+    public User()
+    {
+        Deleted = false;
+        Avatar = "https://ui-avatars.com/api/?name=John+Doe";
+        
+    }
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
@@ -38,9 +46,13 @@ public class User
     public bool IsBanned { get; set; }
     public DateTime? TimeOut { get; set; }
     public DateTime? LastLogIn { get; set; }
-    public string? Avatar { get; set; }
+    public string Avatar { get; set; }
 
     public IPAddress? LastLoginIp { get; set; }
+
+    [DefaultValue(false)] public bool Deleted { get; set; }
+
+    public DateTime? DateToDelete { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

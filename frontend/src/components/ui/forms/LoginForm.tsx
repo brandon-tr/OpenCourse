@@ -3,10 +3,11 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
-import { TextInputForms } from "@/components/ui/inputs/TextInputForms";
+import { TextInputForms } from "@/components/ui/inputs/FormInputs/TextInputForms";
 import Alert from "@/components/ui/Surfaces/Alerts/Alert";
 import { useUiStore } from "@/components/store/Store";
-import { useRouter } from "next/navigation"; // Import the useUiStore hook
+import { useRouter } from "next/navigation";
+import { useLocalStorage } from "@/components/hooks/UseLocalStorage"; // Import the useUiStore hook
 
 type FormData = {
   email: string;
@@ -24,7 +25,11 @@ const LoginForm: React.FC = () => {
   // Access the showAlert and hideAlert functions from the store
   const showAlert = useUiStore((state) => state.showAlert);
   const hideAlert = useUiStore((state) => state.hideAlert);
-
+  const setUser = useUiStore((state) => state.setUser);
+  const [storedValue, setStoredValue] = useLocalStorage("user", {
+    level: "",
+    loggedIn: false,
+  });
   const onSubmit = async (data: FormData) => {
     hideAlert(); // Hide any existing alert
     const response = await fetch(
@@ -39,6 +44,8 @@ const LoginForm: React.FC = () => {
     if (json.error) {
       showAlert(json.error, "error"); // Show the error alert with the error message
     } else if (json.status === 200) {
+      setUser({ level: json.level, loggedIn: true });
+      setStoredValue({ level: json.level, loggedIn: true });
       showAlert(json.message, "success"); // Show the success alert
       setTimeout(() => {
         router.push("/courses");
@@ -50,7 +57,6 @@ const LoginForm: React.FC = () => {
 
   return (
     <div>
-      {process.env.NEXT_PUBLIC_API_ROUTE}
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
           <TextInputForms
