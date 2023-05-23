@@ -35,7 +35,13 @@ const MaterialSwitch = ({ name, label, control }: MaterialSwitchProps) => {
               }`}
             ></div>
           </div>
-          {label && <div className="ml-3 font-medium">{label}</div>}
+          {label && (
+            <div
+              className={`ml-3 font-medium ${value ? "text-green-500" : ""}`}
+            >
+              {label}
+            </div>
+          )}
         </label>
       )}
     />

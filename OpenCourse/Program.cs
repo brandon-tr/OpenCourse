@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using OpenCourse.Data;
 using OpenCourse.Middlewares;
@@ -12,6 +13,14 @@ builder.Services.AddDbContext<OpenCourseContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("OpenCourseContext") ??
                       throw new InvalidOperationException("Connection string 'OpenCourseContext' not found.")));
 
+builder.WebHost.ConfigureKestrel((context, options) =>
+{
+    options.ListenAnyIP(5001, listenOptions =>
+    {
+        listenOptions.Protocols = HttpProtocols.Http1AndHttp2AndHttp3;
+        listenOptions.UseHttps();
+    });
+});
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -79,17 +88,13 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<RoleService>();
 
 var app = builder.Build();
-
+app.UseHsts();
+app.UseHttpsRedirection();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
-else
-{
-    app.UseHsts();
-    app.UseHttpsRedirection();
 }
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions

@@ -234,7 +234,7 @@ export const SiteSettingsForm: React.FC<SiteInterface> = ({ site }) => {
           <TextInputForms
             id="siteFacebook"
             type="text"
-            label="Site Facebook"
+            label="Facebook"
             register={register}
             validationOptions={{
               minLength: {
@@ -250,7 +250,7 @@ export const SiteSettingsForm: React.FC<SiteInterface> = ({ site }) => {
           <TextInputForms
             id="siteTwitter"
             type="text"
-            label="Site Twitter"
+            label="Twitter"
             register={register}
             validationOptions={{
               minLength: {
@@ -266,7 +266,7 @@ export const SiteSettingsForm: React.FC<SiteInterface> = ({ site }) => {
           <TextInputForms
             id="siteInstagram"
             type="text"
-            label="Site Instagram"
+            label="Instagram"
             register={register}
             validationOptions={{
               minLength: {
@@ -282,7 +282,7 @@ export const SiteSettingsForm: React.FC<SiteInterface> = ({ site }) => {
           <TextInputForms
             id="siteYoutube"
             type="text"
-            label="Site Youtube"
+            label="Youtube"
             register={register}
             validationOptions={{
               minLength: {
