@@ -7,9 +7,9 @@ namespace OpenCourse.Interfaces;
 public interface IRoleInterface
 {
     Task<ActionResult<IEnumerable<Role>>> GetRole();
-    Task<ActionResult<Role>> GetRole(int id);
-    Task<bool> PutRole(int id, Role role);
+    Task<ActionResult<Role>> GetRole(string id);
+    Task<bool> PutRole(string id, Role role);
     Task<ActionResult<Role>> PostRole(Role role);
-    Task<bool> DeleteRole(int id);
+    Task<bool> DeleteRole(string id);
     Task<List<UserRoleResponseDto>> GetAllRolesAsync();
 }

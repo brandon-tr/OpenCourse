@@ -102,6 +102,7 @@ const MaterialCombo: React.FC<MaterialSelectProps> = ({
             onChange={onChange}
             isMulti={isMulti}
             name={name}
+            noOptionsMessage={() => "Type your keyword"}
             styles={customStyles} // Apply the custom styles to the CreatableSelect component
           />
         )}

@@ -19,20 +19,23 @@ public class RoleDataGenerator
         {
             new()
             {
-                Id = 1,
+                Id = new Guid("48952354-C45E-4FFC-8E9D-0A4DB66A0722").ToString(),
                 Name = "Admin",
+                NormalizedName = "ADMIN",
                 Level = 3
             },
             new()
             {
-                Id = 2,
+                Id = new Guid("48952354-C45E-4FFC-8E9D-0A4DB66A0723").ToString(),
                 Name = "Moderator",
+                NormalizedName = "MODERATOR",
                 Level = 2
             },
             new()
             {
-                Id = 3,
+                Id = new Guid("48952354-C45E-4FFC-8E9D-0A4DB66A0724").ToString(),
                 Name = "Student",
+                NormalizedName = "STUDENT",
                 Level = 1
             }
         };

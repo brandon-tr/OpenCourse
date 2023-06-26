@@ -13,12 +13,12 @@ public class UserDataGenerator
         var rand = new Random();
 
         userModelFake = new Faker<User>()
-            .RuleFor(u => u.Id, f => -(f.IndexFaker + 1))
+            .RuleFor(u => u.Id, f => f.Random.Guid().ToString())
             .RuleFor(u => u.LastLoginIp, f => rand.Next(1, 3) == 1 ? f.Internet.IpAddress() : f.Internet.Ipv6Address())
             .RuleFor(u => u.FirstName, f => f.Person.FirstName)
             .RuleFor(u => u.LastName, f => f.Person.LastName)
             .RuleFor(u => u.Email, f => f.Person.Email)
-            .RuleFor(u => u.Password, f => f.Internet.Password())
+            .RuleFor(u => u.PasswordHash, f => "$2a$11$hsvy36UKalvQue16lYge2.GD9ZrifVsbDVYK0DydAqRG1MNiLl8aK")
             .RuleFor(u => u.IsBanned, f => f.Random.Bool())
             .RuleFor(u => u.TimeOut, f => f.Date.Future().ToUniversalTime())
             .RuleFor(u => u.LastLogIn, f => f.Date.Past().ToUniversalTime())

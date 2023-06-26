@@ -28,7 +28,7 @@ public class RoleController : ControllerBase
 
     // GET: api/Role/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Role>> GetRole(int id)
+    public async Task<ActionResult<Role>> GetRole(string id)
     {
         return await _roleService.GetRole(id);
     }
@@ -37,7 +37,7 @@ public class RoleController : ControllerBase
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> PutRole(int id, Role role)
+    public async Task<IActionResult> PutRole(string id, Role role)
     {
         if (await _roleService.PutRole(id, role))
         {
@@ -70,7 +70,7 @@ public class RoleController : ControllerBase
     // DELETE: api/Role/5
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin, Moderator")]
-    public async Task<IActionResult> DeleteRole(int id)
+    public async Task<IActionResult> DeleteRole(string id)
     {
         await _roleService.DeleteRole(id);
         var response = new
@@ -89,7 +89,7 @@ public class RoleController : ControllerBase
         return Ok(roles);
     }
 
-    private bool RoleExists(int id)
+    private bool RoleExists(string id)
     {
         return (_context.Role?.Any(e => e.Id == id)).GetValueOrDefault();
     }

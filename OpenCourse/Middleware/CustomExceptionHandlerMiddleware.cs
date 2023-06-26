@@ -21,7 +21,10 @@ public class CustomExceptionHandlerMiddleware
         { typeof(BadRolePutException), HttpStatusCode.BadRequest },
         { typeof(RoleDoesNotExistException), HttpStatusCode.BadRequest },
         { typeof(RoleExistsException), HttpStatusCode.BadRequest },
-        { typeof(InsufficientPrivilegeException), HttpStatusCode.Forbidden }
+        { typeof(InsufficientPrivilegeException), HttpStatusCode.Forbidden },
+        { typeof(UserBannedException), HttpStatusCode.Forbidden },
+        { typeof(NullReferenceException), HttpStatusCode.BadRequest },
+        { typeof(InvalidDataException), HttpStatusCode.BadRequest }
     };
 
 

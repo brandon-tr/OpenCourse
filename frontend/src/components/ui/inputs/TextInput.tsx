@@ -3,12 +3,17 @@
 import React, { FC, ChangeEvent, useState, useEffect, useMemo } from "react";
 import { useUiStore } from "@/components/store/Store";
 import { useDebounce } from "@/components/hooks/UseDebounce";
+import {useSearchParams} from "next/navigation";
+import useQueryParams from "@/components/hooks/useQueryParams";
 
 interface TextInputProps {
   label: string;
   value?: string;
   onChange?: (value: string) => void;
   debounced?: boolean;
+}
+interface QueryParams {
+  filter: string;
 }
 
 export const TextInput: FC<TextInputProps> = ({
@@ -18,6 +23,7 @@ export const TextInput: FC<TextInputProps> = ({
   debounced = false,
 }) => {
   const { showNotification, hideNotification } = useUiStore();
+  const { queryParams, setQueryParams } = useQueryParams<QueryParams>();
   const [innerValue, setInnerValue] = useState(value);
 
   const debouncedOnChange = useDebounce(() => {
@@ -33,6 +39,14 @@ export const TextInput: FC<TextInputProps> = ({
       onChange && onChange(event.target.value);
     }
   };
+
+  useEffect(() => {
+    if(value) {
+        setInnerValue(value);
+        setQueryParams({filter: value});
+    }
+  }, [setInnerValue, value]);
+
 
   useEffect(() => {
     if (value !== innerValue && !debounced) {

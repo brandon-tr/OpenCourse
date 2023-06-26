@@ -25,7 +25,7 @@ public class RoleService : IRoleInterface
         return await _context.Role.ToListAsync();
     }
 
-    public async Task<ActionResult<Role>> GetRole(int id)
+    public async Task<ActionResult<Role>> GetRole(string id)
     {
         if (_context.Role == null) throw new RoleNotFoundException();
         var role = await _context.Role.FindAsync(id);
@@ -33,23 +33,6 @@ public class RoleService : IRoleInterface
         if (role == null) throw new RoleNotFoundException();
 
         return role;
-    }
-
-    public async Task<bool> PutRole(int id, Role role)
-    {
-        if (id != role.Id) throw new BadRolePutException(role.Name);
-
-        _context.Entry(role).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            throw new ConcurrencyException();
-        }
     }
 
     public async Task<ActionResult<Role>> PostRole(Role role)
@@ -61,7 +44,7 @@ public class RoleService : IRoleInterface
         return role;
     }
 
-    public async Task<bool> DeleteRole(int id)
+    public async Task<bool> DeleteRole(string id)
     {
         if (_context.Role == null) throw new RoleNotFoundException();
         var role = await _context.Role.FindAsync(id);
@@ -81,5 +64,22 @@ public class RoleService : IRoleInterface
             Level = r.Level
         }).ToListAsync().ConfigureAwait(false);
         return roles;
+    }
+
+    public async Task<bool> PutRole(string id, Role role)
+    {
+        if (!id.Equals(role.Id)) throw new BadRolePutException(role.Name);
+
+        _context.Entry(role).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConcurrencyException();
+        }
     }
 }

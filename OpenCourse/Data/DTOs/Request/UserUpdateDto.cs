@@ -4,7 +4,7 @@ namespace OpenCourse.Data.DTOs.Response;
 
 public class UserUpdateDto
 {
-    [Required] public int Id { get; set; }
+    [Required] public string Id { get; set; }
 
     [EmailAddress]
     [MinLength(2)]

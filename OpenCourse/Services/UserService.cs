@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OpenCourse.Data;
 using OpenCourse.Data.DTOs.Response;
 using OpenCourse.Exceptions;
@@ -13,32 +15,14 @@ public class UserService : IUserInterface
 {
     private readonly OpenCourseContext _context;
 
-    public UserService(OpenCourseContext context)
+    private readonly SignInManager<User> _signInManager;
+    private readonly UserManager<User> _userManager;
+
+    public UserService(OpenCourseContext context, SignInManager<User> signInManager, UserManager<User> userManager)
     {
         _context = context;
-    }
-
-    public async Task<GetUserResponseDto> GetUserAsync(int id)
-    {
-        if (id == null) throw new ArgumentNullException(nameof(id));
-        var user = await _context.User.Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.Id == id).ConfigureAwait(false);
-        if (user == null) throw new UserNotFoundException();
-        return new GetUserResponseDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            IsBanned = user.IsBanned,
-            Avatar = user.Avatar,
-            LastName = user.LastName,
-            UserRoles = user.UserRoles.Select(ur => new UserRoleResponseDto
-            {
-                Id = ur.Role.Id,
-                Name = ur.Role.Name,
-                Level = ur.Role.Level
-            }).ToList()
-        };
+        _signInManager = signInManager;
+        _userManager = userManager;
     }
 
     public Task<GetCurrentUserResponseDto> GetCurrentUser()
@@ -55,42 +39,70 @@ public class UserService : IUserInterface
             .ConfigureAwait(false);
         if (user == null) throw new UserNotFoundException();
 
-        if (!BCrypt.Net.BCrypt.EnhancedVerify(userLoginDto.Password, user.Password)) throw new WrongPasswordException();
-        return user;
+        // if (!BCrypt.Net.BCrypt.EnhancedVerify(userLoginDto.Password, user.Password)) throw new WrongPasswordException();
+        var result = await _signInManager.PasswordSignInAsync(user, userLoginDto.Password, true, true);
+        if (result.Succeeded)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var maxLevel = roles.Max(r => _context.Role.ToList().Max(l => l.Level));
+            await _userManager.AddClaimAsync(user, new Claim("RoleLevel", maxLevel.ToString()));
+
+            // Each role will be added as a claim
+            // foreach (var role in roles)
+            // {
+            //     var claim = new Claim(ClaimTypes.Role, role);
+            //     await _userManager.AddClaimAsync(user, claim);
+            // }
+            if (user.IsBanned) throw new UserBannedException();
+            return user;
+        }
+
+        throw new WrongPasswordException();
     }
 
     public async Task<GetUserResponseDto> RegisterUserAsync(UserRegistrationDto userRegistrationDto)
     {
         if (await CheckEmailAsync(userRegistrationDto.Email).ConfigureAwait(false))
             throw new EmailAlreadyExistsException();
+        Console.WriteLine(_context.Role.First().Id);
+        var role = await _context.Role.FirstOrDefaultAsync(r => r.Id.Equals("48952354-c45e-4ffc-8e9d-0a4db66a0724"))
+            .ConfigureAwait(false);
 
+        if (role == null) throw new RoleNotFoundException();
         var newUser = new User
         {
             Email = userRegistrationDto.Email,
             FirstName = userRegistrationDto.FirstName,
             LastName = userRegistrationDto.LastName,
-            Password = BCrypt.Net.BCrypt.EnhancedHashPassword(userRegistrationDto.Password),
-            UserRoles = new List<UserRole>
-            {
-                new()
-                {
-                    RoleId = 3
-                }
-            }
+            UserName = userRegistrationDto.FirstName + userRegistrationDto.LastName
         };
+        try
+        {
+            var result = await _signInManager.UserManager.CreateAsync(newUser, userRegistrationDto.Password);
+            var roleAdd = await _userManager.AddToRoleAsync(newUser, role.Name);
+            if (!result.Succeeded)
+                foreach (var error in result.Errors)
+                    throw new InvalidDataException(error.Description);
+            if (!roleAdd.Succeeded)
+                foreach (var error in result.Errors)
+                    throw new InvalidDataException(error.Description);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            throw;
+        }
 
-        _context.Add(newUser);
-        await _context.SaveChangesAsync().ConfigureAwait(false);
-        var role = await _context.Role.FirstOrDefaultAsync(r => r.Id == 3).ConfigureAwait(false);
+        var responseRole = await _userManager.GetRolesAsync(newUser);
         var userResponseDto = new GetUserResponseDto
         {
             Id = newUser.Id,
             Email = newUser.Email,
             FirstName = newUser.FirstName,
             LastName = newUser.LastName,
-            UserRoles = newUser.UserRoles.Select(ur => new UserRoleResponseDto
+            UserRoles = responseRole.Select(r => new UserRoleResponseDto
             {
-                Name = role.Name,
+                Name = r,
                 Level = role.Level
             }).ToList()
         };
@@ -99,24 +111,32 @@ public class UserService : IUserInterface
 
     public async Task<ActionResult<PagedUsersResponseDto>> GetAllUsersAsync(PagingParameters pagingParameters)
     {
+        if (pagingParameters.PageNumber <= 0) throw new NullReferenceException("Page number must be greater than 0");
+        if (pagingParameters.PageSize <= 0) throw new NullReferenceException("Page size must be greater than 0");
+
         // Get the queryable users list
         var users = _context.User.AsQueryable();
+        users = users.Where(u => u.Deleted == false);
 
         // Filter users based on the search term
         if (!string.IsNullOrEmpty(pagingParameters.Search))
-            users = users.Where(u => u.FirstName.Contains(pagingParameters.Search) ||
-                                     u.LastName.Contains(pagingParameters.Search) ||
-                                     u.Id.ToString().Equals(pagingParameters.Search) ||
-                                     u.Email.Contains(pagingParameters.Search));
+            users = users.Where(u =>
+                u.FirstName.Contains(pagingParameters.Search) ||
+                u.LastName.Contains(pagingParameters.Search) ||
+                u.Id.Equals(pagingParameters.Search) ||
+                u.Email.Contains(pagingParameters.Search)
+            );
 
         // Get the total count of users
         var count = await users.CountAsync();
+        if (count <= 0) count = 1;
 
         // Apply pagination
         users = users.Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
             .Take(pagingParameters.PageSize);
 
         // Fetch the required users from database and map them to the DTO
+
         var usersList = await users.Select(user => new GetAllUsersResponseDto
         {
             Id = user.Id,
@@ -147,11 +167,99 @@ public class UserService : IUserInterface
         return pagedResponse;
     }
 
-    public async Task BanUserAsync(int id, HttpContext httpContextAccessor)
+    public async Task<GetUserResponseDto> GetUserAsync(string id)
+    {
+        if (id == null) throw new ArgumentNullException(nameof(id));
+        var user = await _context.User.Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == id).ConfigureAwait(false);
+        if (user == null) throw new UserNotFoundException();
+        return new GetUserResponseDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            IsBanned = user.IsBanned,
+            Avatar = user.Avatar,
+            LastName = user.LastName,
+            UserRoles = user.UserRoles.Select(ur => new UserRoleResponseDto
+            {
+                Id = ur.Role.Id,
+                Name = ur.Role.Name,
+                Level = ur.Role.Level
+            }).ToList()
+        };
+    }
+
+    public async Task UnBanUserAsync(string id, HttpContext httpContextAccessor)
     {
         var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
             ?.Value;
-        if (int.Parse(requesterId) == id) throw new InsufficientPrivilegeException("You cannot ban yourself silly");
+        if (requesterId.IsNullOrEmpty()) throw new EmptyBodyException();
+        if (requesterId.Equals(id)) throw new InsufficientPrivilegeException("You cannot unban yourself");
+        var user = await _context.User.Where(user => user.Id == id)
+            .Select(ur => new
+            {
+                User = ur,
+                RoleLevel = ur.UserRoles.Select(r => r.Role.Level)
+            }).FirstOrDefaultAsync().ConfigureAwait(false);
+        if (user == null) throw new UserNotFoundException();
+
+        var attemptedBanUserClaims =
+            httpContextAccessor.User.Claims.Where(cl => cl.Type == "RoleLevel")?.Max(m => m.Value);
+        Console.WriteLine(attemptedBanUserClaims);
+        if (attemptedBanUserClaims is null) throw new ForbiddenException();
+
+        var higherRank = int.Parse(attemptedBanUserClaims) >= user.RoleLevel.Max();
+        if (!higherRank) throw new InsufficientPrivilegeException();
+
+        user.User.IsBanned = false;
+        _context.Update(user.User);
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    public async Task DeleteUserAsync(string id, HttpContext httpContextAccessor)
+    {
+        if (id.IsNullOrEmpty()) throw new EmptyBodyException("Id cannot be empty");
+        var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
+            ?.Value;
+        if (requesterId.IsNullOrEmpty()) throw new EmptyBodyException();
+        if (requesterId.Equals(id)) throw new InsufficientPrivilegeException("You cannot delete yourself silly");
+        var user = await _context.User.Where(user => user.Id == id)
+            .Select(ur => new
+            {
+                User = ur,
+                RoleLevel = ur.UserRoles.Select(r => r.Role.Level)
+            }).FirstOrDefaultAsync().ConfigureAwait(false);
+        if (user == null) throw new UserNotFoundException();
+        var attemptedBanUserClaims =
+            httpContextAccessor.User.Claims.Where(cl => cl.Type == "RoleLevel")?.Max(m => m.Value);
+        if (attemptedBanUserClaims is null) throw new ForbiddenException();
+        var higherRank = int.Parse(attemptedBanUserClaims) >= user.RoleLevel.Max();
+        if (!higherRank) throw new InsufficientPrivilegeException();
+        if (user.User.Deleted)
+        {
+            await _userManager.DeleteAsync(user.User);
+        }
+        else
+        {
+            user.User.Deleted = true;
+            user.User.DateToDelete = DateTime.UtcNow + TimeSpan.FromDays(30);
+            var trashBin = new TrashBin { User = user.User };
+
+            // Add it to the context
+            _context.TrashBin.Add(trashBin);
+            _context.Update(user.User);
+        }
+
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    public async Task BanUserAsync(string id, HttpContext httpContextAccessor)
+    {
+        var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
+            ?.Value;
+        if (requesterId.IsNullOrEmpty()) throw new EmptyBodyException();
+        if (requesterId.Equals(id)) throw new InsufficientPrivilegeException("You cannot ban yourself silly");
         var user = await _context.User.Where(user => user.Id == id)
             .Select(ur => new
             {
@@ -187,6 +295,7 @@ public class UserService : IUserInterface
     {
         var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
             ?.Value;
+        if (requesterId == null) throw new InvalidDataException();
         var userToUpdate = await _context.User.FirstAsync(u => u.Id == user.Id).ConfigureAwait(false);
         if (userToUpdate == null) throw new UserNotFoundException();
         if (user.FirstName is not null) userToUpdate.FirstName = user.FirstName;
@@ -195,27 +304,34 @@ public class UserService : IUserInterface
         if (user.Avatar is not null) userToUpdate.Avatar = user.Avatar;
         if (user.IsBanned is not null)
         {
-            if (int.Parse(requesterId) == user.Id)
+            if (requesterId.Equals(user.Id))
                 throw new InsufficientPrivilegeException("You cannot ban yourself silly");
             userToUpdate.IsBanned = (bool)user.IsBanned;
         }
 
-        if (user.Password is not null) userToUpdate.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(user.Password);
+        if (user.Password is not null)
+        {
+            var hasher = _userManager.PasswordHasher;
+            var hashedNewPassword = hasher.HashPassword(userToUpdate, user.Password);
+            userToUpdate.PasswordHash = hashedNewPassword;
+        }
+
+        // userToUpdate.PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(user.Password);
         if (user.UserRoles is not null)
         {
             var highestRole =
                 httpContextAccessor.User.Claims.Where(cl => cl.Type == "RoleLevel")?.Max(m => m.Value);
             var newHighestRole = user.UserRoles.Max(ur => ur.Level);
-            if (int.Parse(requesterId) == user.Id && int.Parse(highestRole) > newHighestRole)
+            if (requesterId.Equals(user.Id) && int.Parse(highestRole) > newHighestRole)
                 throw new InsufficientPrivilegeException("You cannot change your own role to a lower one");
-            if (int.Parse(requesterId) == user.Id && int.Parse(highestRole) < newHighestRole)
+            if (requesterId.Equals(user.Id) && int.Parse(highestRole) < newHighestRole)
                 throw new InsufficientPrivilegeException("You cannot change your own role to a higher one");
 
             // Remove existing UserRoles
             var userRolesToRemove = _context.UserRoles.Where(ur => ur.UserId == user.Id);
             _context.UserRoles.RemoveRange(userRolesToRemove);
 
-            userToUpdate.UserRoles = user.UserRoles.Select(ur => new UserRole
+            userToUpdate.UserRoles = user.UserRoles.Select(ur => new UserRoles
             {
                 RoleId = ur.Id,
                 UserId = user.Id
@@ -225,6 +341,25 @@ public class UserService : IUserInterface
         _context.Update(userToUpdate);
 
 
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    public async Task RecoverUserFromTrash(string id, HttpContext httpContextAccessor)
+    {
+        var requesterId = httpContextAccessor.User.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier)
+            ?.Value;
+        if (requesterId == null) throw new NullReferenceException("Invalid request from an unknown user");
+        if (requesterId.Equals(id))
+            throw new InsufficientPrivilegeException("You cannot recover yourself");
+
+        // var user = await _context.User.FindAsync(id).ConfigureAwait(false);
+        var user = await _userManager.FindByIdAsync(id);
+        if (user is null) throw new NullReferenceException("User is not found");
+        if (user.Deleted == false) throw new NullReferenceException("User is not marked for deletion");
+        user.Deleted = false;
+        user.DateToDelete = null;
+        _context.Update(user);
+        _context.TrashBin.Remove(await _context.TrashBin.FirstAsync(tb => tb.UserId == id).ConfigureAwait(false));
         await _context.SaveChangesAsync().ConfigureAwait(false);
     }
 }

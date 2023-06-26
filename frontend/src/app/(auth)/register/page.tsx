@@ -3,8 +3,12 @@ import Card from "@/components/ui/Surfaces/Card";
 import CenteredLayout from "@/components/ui/layout/Container";
 import { headers } from "next/headers";
 import isMobileDevice from "@/components/utility/IsMobileDevice";
+import {Metadata} from "next";
 
-export default function Home() {
+export const metadata: Metadata = {
+    title: "Register",
+};
+export default function Page() {
   const listHeaders = headers();
   const userAgent = listHeaders.get("user-agent");
   return (

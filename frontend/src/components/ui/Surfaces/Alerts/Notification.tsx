@@ -15,6 +15,14 @@ const Notification: React.FC = () => {
     })
   );
 
+  let socket = new WebSocket('ws://localhost/WebSocket/connected');
+  socket.onmessage = function (event) {
+    socket.send('pong')
+  }
+  socket.onopen = function (event) {
+    socket.send('pong');
+  }
+
   useEffect(() => {
     if (params.has("errors")) {
       switch (params.get("errors")) {

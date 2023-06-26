@@ -9,8 +9,10 @@ public interface IUserInterface
 {
     Task<GetUserResponseDto> RegisterUserAsync(UserRegistrationDto userRegistrationDto);
     Task<User> LoginUserAsync(UserLoginDto userLoginDto);
-    Task<GetUserResponseDto> GetUserAsync(int id);
+    Task<GetUserResponseDto> GetUserAsync(string id);
     Task<GetCurrentUserResponseDto> GetCurrentUser();
     Task<ActionResult<PagedUsersResponseDto>> GetAllUsersAsync(PagingParameters getAllUsersDto);
-    Task BanUserAsync(int id, HttpContext httpContext);
+    Task BanUserAsync(string id, HttpContext httpContext);
+    Task UnBanUserAsync(string id, HttpContext httpContextAccessor);
+    Task DeleteUserAsync(string id, HttpContext httpContextAccessor);
 }
