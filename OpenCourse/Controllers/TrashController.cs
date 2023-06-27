@@ -31,7 +31,7 @@ public class TrashController : ControllerBase
             result = result.Where(u =>
                 u.User.FirstName.Contains(pagingParameters.Search) ||
                 u.User.LastName.Contains(pagingParameters.Search) ||
-                u.User.Id.ToString().Equals(pagingParameters.Search) ||
+                u.User.Id.Equals(pagingParameters.Search) ||
                 u.User.Email.Contains(pagingParameters.Search)
             );
         var count = result.Count();
