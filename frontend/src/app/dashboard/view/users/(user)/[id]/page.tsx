@@ -50,7 +50,7 @@ export async function generateMetadata(
 
     // fetch data
     const data = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/User/${Number.parseInt(String(id))}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/User/${id}`,
         {
             headers: headers(),
         }

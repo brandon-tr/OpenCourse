@@ -9,6 +9,7 @@ import useWindowSize from "@/components/hooks/UseWindowSize";
 import {usePathname} from "next/navigation";
 import {useLocalStorage} from "@/components/hooks/UseLocalStorage";
 import NavLink from "@/components/ui/inputs/NavLink";
+import {UserLogin} from "@/components/ui/forms/LoginForm";
 
 type WithLogoSrc = {
     isLogoText: false;
@@ -30,7 +31,9 @@ type AppBarProps = LogoProps & {
     badgeText?: string;
     roundedLogo?: boolean;
     isMobile?: boolean;
+    userLogin?: UserLogin;
 };
+
 
 const AppBar: React.FC<AppBarProps> = ({
                                            isLogoText,
@@ -41,11 +44,13 @@ const AppBar: React.FC<AppBarProps> = ({
                                            badgeText,
                                            roundedLogo = true,
                                            isMobile = false,
+                                           userLogin,
                                        }) => {
     const pathName = usePathname();
-    const [storedValue, setStoredValue] = useLocalStorage("user", {
+    const [storedValue, setStoredValue] = useLocalStorage<UserLogin>("user", {
+        Email: "", FirstName: "", IsBanned: false, LastName: "",
         level: 0,
-        loggedIn: false,
+        loggedIn: false
     });
     const {ref, height} = useResizeObserver();
     const setAppBarHeight = useUiStore((state) => state.setAppBarHeight);
@@ -54,6 +59,13 @@ const AppBar: React.FC<AppBarProps> = ({
     const {width} = useWindowSize();
     const user = useUiStore((state) => state.user);
     const setUser = useUiStore((state) => state.setUser);
+
+    useEffect(() => {
+        if (userLogin) {
+            setStoredValue(userLogin);
+            setUser(userLogin);
+        }
+    }, [setStoredValue, setUser, userLogin]);
 
     const items = [
         {
@@ -80,7 +92,6 @@ const AppBar: React.FC<AppBarProps> = ({
     useEffect(() => {
         if (height !== null) {
             setAppBarHeight(height);
-            console.log('setting height', height)
         }
     }, [height, setAppBarHeight]);
 

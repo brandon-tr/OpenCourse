@@ -27,13 +27,18 @@ public class CustomExceptionHandlerMiddleware
         { typeof(InvalidDataException), HttpStatusCode.BadRequest }
     };
 
+    private static bool _isDevelopment;
+
+    private readonly IHostEnvironment _hostEnvironment;
 
     private readonly RequestDelegate _next;
 
 
-    public CustomExceptionHandlerMiddleware(RequestDelegate next)
+    public CustomExceptionHandlerMiddleware(RequestDelegate next, IHostEnvironment hostEnvironment)
     {
         _next = next;
+        _hostEnvironment = hostEnvironment;
+        _isDevelopment = hostEnvironment.IsDevelopment();
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -59,14 +64,25 @@ public class CustomExceptionHandlerMiddleware
         }
         else
         {
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            Console.WriteLine(exception.Message);
-            await context.Response.WriteAsJsonAsync(new
+            if (_isDevelopment)
             {
-                error = "An unexpected error has occurred. Our team has been notified of the issue, " +
-                        "and we apologize for the inconvenience. " +
-                        "Please try again later or contact our support team for further assistance."
-            }).ConfigureAwait(false);
+                context.Response.StatusCode = 500;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    error = exception.Message
+                }).ConfigureAwait(false);
+            }
+            else
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                Console.WriteLine(exception.Message);
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    error = "An unexpected error has occurred. Our team has been notified of the issue, " +
+                            "and we apologize for the inconvenience. " +
+                            "Please try again later or contact our support team for further assistance."
+                }).ConfigureAwait(false);
+            }
         }
     }
 }

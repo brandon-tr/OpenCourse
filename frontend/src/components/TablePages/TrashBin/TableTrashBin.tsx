@@ -9,20 +9,28 @@ import {useRouter} from "next/navigation";
 import MaterialButton from "@/components/ui/inputs/MaterialButton";
 import {useUiStore} from "@/components/store/Store";
 import Notification from "@/components/ui/Surfaces/Alerts/Notification";
+import {CheckErrors} from "@/components/utility/HandleFetchErrors";
+import {CheckAndThrowError} from "@/components/utility/CheckAndThrowError";
 
 interface TableUsersProps {
     paginationData: UserPagination;
 }
 
 async function getData(pageNumber: number, pageSize: number, search: string) {
-    const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/Trash/GetAllTrash?PageNumber=${pageNumber}&PageSize=${pageSize}&Search=${search}`,
-        {
-            credentials: "include",
-            cache: 'no-cache'
-        }
-    );
-    return await response.json();
+    try {
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/Trash/GetAllTrash?PageNumber=${pageNumber}&PageSize=${pageSize}&Search=${search}`,
+            {
+                credentials: "include",
+                cache: 'no-cache'
+            }
+        )
+        let result = await response.json();
+        CheckErrors(response, result);
+        return result;
+    } catch (e) {
+        CheckAndThrowError(e);
+    }
 }
 
 async function deleteUser(id: number) {

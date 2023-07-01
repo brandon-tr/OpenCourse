@@ -25,6 +25,24 @@ builder.WebHost.ConfigureKestrel((context, options) =>
 
 // Add services to the container.
 // Create Authentication
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+    options.CheckConsentNeeded = context => true;
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+});
+
+builder.Services.AddAuthentication().AddGoogle(googleOptions =>
+{
+    // if (bool.Parse(builder.Configuration["Google"]) &&
+    //     builder.Configuration["Authentication:Google:ClientId"] is not null &&
+    //     builder.Configuration["Authentication:Google:ClientSecret"] is not null)
+    // {
+    googleOptions.ClientId = builder.Configuration["Authentication_Google_ClientId"];
+    googleOptions.ClientSecret = builder.Configuration["Authentication_Google_ClientSecret"];
+    googleOptions.SignInScheme = IdentityConstants.ExternalScheme;
+    // }
+});
 builder.Services.AddIdentity<User, Role>(options =>
 {
     options.User.RequireUniqueEmail = true;
@@ -59,47 +77,6 @@ builder.Services.ConfigureApplicationCookie(options =>
         }
     };
 });
-builder.Services.AddAuthentication().AddGoogle(googleOptions =>
-{
-    if (bool.Parse(builder.Configuration["Google"]) &&
-        builder.Configuration["Authentication:Google:ClientId"] is not null &&
-        builder.Configuration["Authentication:Google:ClientSecret"] is not null)
-    {
-        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-    }
-});
-// builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-//     .AddCookie(options =>
-//     {
-//         options.LoginPath = null;
-//         options.LogoutPath = null;
-//         options.Cookie.Name = "OpenCourseCookie";
-//         options.SlidingExpiration = true;
-//         options.ExpireTimeSpan = TimeSpan.FromHours(10);
-//         options.Events = new CookieAuthenticationEvents
-//         {
-//             OnRedirectToLogin = context =>
-//             {
-//                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-//                 return Task.CompletedTask;
-//             },
-//             OnRedirectToAccessDenied = context =>
-//             {
-//                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//                 return Task.CompletedTask;
-//             }
-//         };
-//     }).AddGoogle(googleOptions =>
-//     {
-// if (bool.Parse(builder.Configuration["Google"]) &&
-//      builder.Configuration["Authentication:Google:ClientId"] is not null &&
-//      builder.Configuration["Authentication:Google:ClientSecret"] is not null)
-// {
-//     googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-//     googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-// }
-//     });
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

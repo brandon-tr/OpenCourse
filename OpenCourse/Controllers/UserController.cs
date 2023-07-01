@@ -23,8 +23,16 @@ public class UserController : ControllerBase
     }
 
     // GET USER WITH ID: api/Authentication/{id}
+    [HttpGet("GetUser")]
+    [Authorize]
+    public async Task<ActionResult<GetCurrentUserResponseDto>> GetCurrentUser()
+    {
+        var user = await _userService.GetCurrentUser().ConfigureAwait(false);
+        return user;
+    }
+
     [HttpGet("{id}")]
-    [Authorize(Roles = "Admin, Moderator")]
+    [Authorize]
     public async Task<ActionResult<GetUserResponseDto>> GetUser(string id)
     {
         var user = await _userService.GetUserAsync(id).ConfigureAwait(false);
@@ -60,7 +68,7 @@ public class UserController : ControllerBase
     // POST Login: api/Authentication/Login
     [HttpPost("Login")]
     [Authorize(Policy = "AnonymousOnly")]
-    public async Task<ActionResult<User>> Login([FromBody] UserLoginDto userLoginDto)
+    public async Task<ActionResult<GetCurrentUserResponseDto>> Login([FromBody] UserLoginDto userLoginDto)
     {
         var user = await _userService.LoginUserAsync(userLoginDto).ConfigureAwait(false);
 
@@ -68,8 +76,23 @@ public class UserController : ControllerBase
         user.LastLoginIp = HttpContext.Connection.RemoteIpAddress;
         await _userService.UpdateUserAsync(user);
         var claims = await _userManager.GetClaimsAsync(user);
-        var roleLevel = claims.FirstOrDefault(c => c.Type == "RoleLevel")?.Value;
-        return Ok(new { message = "Welcome back " + user.FirstName, level = roleLevel, status = 200 });
+        var roleLevel = claims.FirstOrDefault(c => c.Type == "RoleLevel")?.Value.Max().ToString();
+
+        if (roleLevel == null)
+            throw new NullReferenceException("RoleLevel was unable to be retrieved, please relog");
+
+        var userResponse = new GetCurrentUserResponseDto
+        {
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Avatar = user.Avatar,
+            level = int.Parse(roleLevel),
+            IsBanned = user.IsBanned,
+            LoggedIn = true
+        };
+
+        return Ok(new { message = "Welcome back " + user.FirstName, user = userResponse, status = 200 });
     }
 
     [HttpPost("UpdateUser")]
@@ -103,7 +126,8 @@ public class UserController : ControllerBase
         var user = await _userManager.GetUserAsync(HttpContext.User);
         if (user == null) throw new UserNotFoundException();
         var claims = await _userManager.GetClaimsAsync(user);
-        var roleLevel = claims.FirstOrDefault(c => c.Type == "RoleLevel")?.Value;
+        var role = claims.FirstOrDefault(c => c.Type == "RoleLevel")?.Value;
+        var roleLevel = int.Parse(role);
         return Ok(new { message = "Approved", level = roleLevel, status = 200 });
     }
 

@@ -1,4 +1,5 @@
 import {create} from "zustand";
+import {UserLogin} from "@/components/ui/forms/LoginForm";
 
 interface UiStore {
     alert: {
@@ -28,11 +29,15 @@ interface UiStore {
         severity: "success" | "info" | "warning" | "error"
     ) => void;
     hideNotification: () => void;
-    user: {
-        level: number;
-        loggedIn: boolean;
-    };
-    setUser: (user: { level: number; loggedIn: boolean }) => void;
+    user: UserLogin
+    setUser: (user: {
+        level: number,
+        loggedIn: boolean,
+        Email: string,
+        FirstName: string,
+        IsBanned: boolean,
+        LastName: string
+    }) => void;
     tableData: any,
     setTableData: (data: any) => void,
 }
@@ -83,6 +88,10 @@ export const useUiStore = create<UiStore>((set) => ({
     user: {
         level: 0,
         loggedIn: false,
+        Email: "",
+        FirstName: "",
+        LastName: "",
+        IsBanned: false,
     },
     setUser: (user) => set({user}),
     tableData: [],

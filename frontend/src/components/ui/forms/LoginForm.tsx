@@ -7,12 +7,22 @@ import {TextInputForms} from "@/components/ui/inputs/FormInputs/TextInputForms";
 import Alert from "@/components/ui/Surfaces/Alerts/Alert";
 import {useUiStore} from "@/components/store/Store";
 import {useRouter, useSearchParams} from "next/navigation";
-import {useLocalStorage} from "@/components/hooks/UseLocalStorage"; // Import the useUiStore hook
+import {useLocalStorage} from "@/components/hooks/UseLocalStorage";
 
 type FormData = {
     email: string;
     password: string;
 };
+
+export type UserLogin = {
+    level: number,
+    loggedIn: boolean,
+    Email: string,
+    FirstName: string,
+    IsBanned: boolean,
+    LastName: string
+}
+
 
 const LoginForm: React.FC = () => {
     const {
@@ -25,21 +35,22 @@ const LoginForm: React.FC = () => {
     // Access the showAlert and hideAlert functions from the store
     const showAlert = useUiStore((state) => state.showAlert);
     const hideAlert = useUiStore((state) => state.hideAlert);
-    const setUser = useUiStore((state) => state.setUser);
     const searchParams = useSearchParams();
     const [run, setRun] = useState(true);
     const searchParamsErrors = searchParams.get("errors");
-    const [storedValue, setStoredValue] = useLocalStorage("user", {
-        level: "",
-        loggedIn: false,
+    const [storedValue, setStoredValue] = useLocalStorage<UserLogin>("user", {
+        level: 0,
+        loggedIn: false, Email: "", FirstName: "", IsBanned: false, LastName: ""
     });
+    const setUser = useUiStore((state) => state.setUser);
 
     useEffect(() => {
         if (searchParamsErrors && searchParamsErrors === process.env.NEXT_PUBLIC_ERRORS_NOT_LOGGED_IN && run) {
             setRun(false);
-            setStoredValue({level: "", loggedIn: false});
+            setStoredValue({level: 0, loggedIn: false, Email: "", FirstName: "", IsBanned: false, LastName: ""});
         }
-    }, [run, searchParamsErrors, storedValue]);
+    }, [run, searchParamsErrors, setStoredValue, storedValue]);
+
 
     const onSubmit = async (data: FormData) => {
         hideAlert(); // Hide any existing alert
@@ -56,8 +67,8 @@ const LoginForm: React.FC = () => {
             showAlert(json.error, "error"); // Show the error alert with the error message
         } else if (json.status === 200) {
             console.log(json);
-            setUser({level: json.level, loggedIn: true});
-            setStoredValue({level: json.level, loggedIn: true});
+            setStoredValue(json.user);
+            setUser(json.user);
             showAlert(json.message, "success"); // Show the success alert
             setTimeout(() => {
                 router.push("/courses");
@@ -66,6 +77,10 @@ const LoginForm: React.FC = () => {
             showAlert("Unknown error", "error"); // Show the error alert
         }
     };
+
+    const LoginWithOAuth = async (auth: string) => {
+        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/ExternalAuth/google`
+    }
 
     return (
         <div>
@@ -109,13 +124,18 @@ const LoginForm: React.FC = () => {
                         }}
                     />
 
-                    <div className={"flex justify-center"}>
+                    <div className={"flex justify-center flex-col gap-2"}>
                         <MaterialButton spacingTop={4} type="submit" size={"full"} color={"secondary"}>
                             Login
                         </MaterialButton>
                     </div>
                 </div>
             </form>
+            <MaterialButton spacingTop={4} type="submit" size={"full"} color={"white"} onClick={() => {
+                LoginWithOAuth("google")
+            }}>
+                Login with google
+            </MaterialButton>
             <Alert alwaysShow={true}/>
         </div>
     );

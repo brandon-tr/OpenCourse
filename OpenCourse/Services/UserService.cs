@@ -14,20 +14,46 @@ namespace OpenCourse.Services;
 public class UserService : IUserInterface
 {
     private readonly OpenCourseContext _context;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<UserService> _logger;
 
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
 
-    public UserService(OpenCourseContext context, SignInManager<User> signInManager, UserManager<User> userManager)
+    public UserService(OpenCourseContext context, SignInManager<User> signInManager, UserManager<User> userManager,
+        IHttpContextAccessor httpContextAccessor, ILogger<UserService> logger)
     {
         _context = context;
         _signInManager = signInManager;
         _userManager = userManager;
+        _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
     }
 
-    public Task<GetCurrentUserResponseDto> GetCurrentUser()
+    public async Task<GetCurrentUserResponseDto> GetCurrentUser()
     {
-        throw new NotImplementedException();
+        if (_httpContextAccessor.HttpContext == null || _httpContextAccessor.HttpContext.User == null)
+            throw new NullReferenceException("http context null");
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User).ConfigureAwait(false);
+
+        if (user == null) throw new NullReferenceException("User not found, please login or login again");
+
+        await SetRoleMaxClaim(user);
+        var claims = await _userManager.GetClaimsAsync(user);
+        var maxLevel = claims.FirstOrDefault(cl => cl.Type == "RoleLevel")?.Value;
+
+        if (maxLevel == null) throw new NullReferenceException("Please login again to retrieve your role");
+
+        return new GetCurrentUserResponseDto
+        {
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Avatar = user.Avatar,
+            IsBanned = user.IsBanned,
+            LoggedIn = true,
+            level = int.Parse(maxLevel)
+        };
     }
 
     public async Task<User> LoginUserAsync(UserLoginDto userLoginDto)
@@ -43,9 +69,7 @@ public class UserService : IUserInterface
         var result = await _signInManager.PasswordSignInAsync(user, userLoginDto.Password, true, true);
         if (result.Succeeded)
         {
-            var roles = await _userManager.GetRolesAsync(user);
-            var maxLevel = roles.Max(r => _context.Role.ToList().Max(l => l.Level));
-            await _userManager.AddClaimAsync(user, new Claim("RoleLevel", maxLevel.ToString()));
+            await SetRoleMaxClaim(user);
 
             // Each role will be added as a claim
             // foreach (var role in roles)
@@ -74,7 +98,7 @@ public class UserService : IUserInterface
             Email = userRegistrationDto.Email,
             FirstName = userRegistrationDto.FirstName,
             LastName = userRegistrationDto.LastName,
-            UserName = userRegistrationDto.FirstName + userRegistrationDto.LastName
+            UserName = userRegistrationDto.Email
         };
         try
         {
@@ -361,5 +385,27 @@ public class UserService : IUserInterface
         _context.Update(user);
         _context.TrashBin.Remove(await _context.TrashBin.FirstAsync(tb => tb.UserId == id).ConfigureAwait(false));
         await _context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    public async Task SetRoleMaxClaim(User user)
+    {
+        var userRoleNames = await _userManager.GetRolesAsync(user);
+        var userRoles = _context.Role.Where(r => userRoleNames.Contains(r.Name));
+        var maxLevel = userRoles.Max(r => r.Level);
+
+        var checkClaims = await _userManager.GetClaimsAsync(user);
+        var checkRoleClaimExsist = checkClaims.Where(cl => cl.Type == "RoleLevel").ToList();
+        var isHigherThanCurrentClaim = false;
+        foreach (var claim in checkRoleClaimExsist)
+            if (int.Parse(claim.Value) < maxLevel)
+            {
+                isHigherThanCurrentClaim = true;
+                await _userManager.RemoveClaimAsync(user, claim);
+                break;
+            }
+
+        if (!isHigherThanCurrentClaim) return;
+
+        await _userManager.AddClaimAsync(user, new Claim("RoleLevel", maxLevel.ToString()));
     }
 }

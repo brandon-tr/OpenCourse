@@ -8,6 +8,7 @@ import {Metadata, ResolvingMetadata} from "next";
 import {CheckErrors} from "@/components/utility/HandleFetchErrors";
 import {NavigationEvents} from "@/components/ui/Surfaces/loading/NavigationEvents";
 import React, {Suspense} from "react";
+import {CheckAndThrowError} from "@/components/utility/CheckAndThrowError";
 
 const inter = Inter({subsets: ["latin"]});
 
@@ -54,16 +55,32 @@ export async function generateMetadata(
 export async function getTitle() {
     try {
         const metadata = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/SiteSetting/title`,
+            `${process.env.NEXT_PUBLIC_API_URL}/SiteSetting/title`, {}
         );
+        const response = await metadata.json();
+        CheckErrors(response);
 
-        CheckErrors(metadata);
-
-        const json = await metadata.json();
-        return json.siteName;
+        return response.siteName;
     } catch (e) {
         console.log(e)
-        throw new Error(e + '');
+        CheckAndThrowError(e);
+    }
+}
+
+async function GetUserDetail() {
+    const request = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/User/GetUser`, {
+            headers: headers(),
+            credentials: 'include',
+            next: {
+                revalidate: 60
+            }
+        }
+    );
+    if (request.ok) {
+        const response = await request.json();
+        CheckErrors(response);
+        return response;
     }
 }
 
@@ -74,6 +91,7 @@ export default async function RootLayout({
 }) {
     const headersList = headers();
     const userAgent = headersList.get("user-agent");
+    const user = await GetUserDetail();
 
     const title = await getTitle();
     return (
@@ -90,6 +108,7 @@ export default async function RootLayout({
                 logoText={title ?? ''}
                 logoAlt={"logo"}
                 badgeText={"32"}
+                userLogin={user}
             />
             {children}
             <Notification/>
