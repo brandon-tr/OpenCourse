@@ -8,11 +8,12 @@ namespace OpenCourse.Services;
 
 public class WebSocketService
 {
-    private readonly OpenCourseContext _context;
+    private readonly OpenCourseContext _context; private readonly ILogger<WebSocketService> _logger;
 
-    public WebSocketService(OpenCourseContext context)
+    public WebSocketService(OpenCourseContext context, ILogger<WebSocketService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task AddSocket(WebSocket socket, HttpContext httpContext)
@@ -36,7 +37,8 @@ public class WebSocketService
         }
         catch (DbUpdateException ex)
         {
-            Console.WriteLine(ex.Message);
+            _logger.LogError("ERROR OCCURED");
+            _logger.LogError(ex.Message);
         }
     }
 

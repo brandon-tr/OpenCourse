@@ -1,31 +1,58 @@
 import React from "react";
-import { UseFormRegister } from "react-hook-form";
+import {FieldError, UseFormRegister} from "react-hook-form";
 
 interface TextAreaInputProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label: string;
-  register: UseFormRegister<any>;
-  name: string;
+    extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+    label: string;
+    register: UseFormRegister<any>;
+    name: string;
+    required?: boolean;
+    validationOptions?: any;
+    error?: FieldError;
+    errorTextColor?: string;
+    errorBgColor?: string;
+    errorBorderColor?: string;
+    id: string;
 }
 
 const TextAreaFormInput: React.FC<TextAreaInputProps> = ({
-  label,
-  register,
-  name,
-  ...props
-}) => {
-  return (
-    <div className="flex flex-col">
-      <label htmlFor={name} className="mb-2">
-        {label}
-      </label>
-      <textarea
-        {...register(name)}
-        {...props}
-        className="resize-none p-2 border rounded-md text-gray-700 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-    </div>
-  );
+                                                             label,
+                                                             register,
+                                                             name,
+                                                             id,
+                                                             validationOptions,
+                                                             error,
+                                                             errorTextColor = "text-red-500",
+                                                             errorBgColor = "bg-red-100",
+                                                             errorBorderColor = "border-red-700",
+                                                             required = false,
+                                                             ...props
+                                                         }) => {
+    return (
+        <div className="flex flex-col">
+            <label htmlFor={name} className="mb-2">
+                {label}
+            </label>
+            <textarea
+                {...register(id, {
+                    required: required ? "This field is required" : false,
+                    ...validationOptions,
+                })}
+                // className={`block w-full p-2 text-primary border ${
+                //     error ? errorBorderColor : "border-gray-300"
+                // } rounded focus:outline-none focus:border-blue-500`}
+                {...props}
+                className="resize-none p-2 border rounded-md text-gray-700 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {error && (
+                <p
+                    className={`${errorTextColor} text-s mt-1 border-2 ${errorBgColor} p-2`}
+                >
+                    {error.message}
+                </p>
+            )}
+        </div>
+    );
 };
 
 export default TextAreaFormInput;

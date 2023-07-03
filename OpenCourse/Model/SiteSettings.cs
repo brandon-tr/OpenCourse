@@ -15,6 +15,7 @@ public class SiteSettings
         IsRegistrationEnabled = true;
         IsEmailConfirmationRequired = true;
         IsMaintenanceMode = false;
+        IsGoogleLoginEnabled = false;
     }
 
     [Key]
@@ -47,4 +48,5 @@ public class SiteSettings
     public bool IsRegistrationEnabled { get; set; }
     public bool IsEmailConfirmationRequired { get; set; }
     public bool IsMaintenanceMode { get; set; }
+    public bool IsGoogleLoginEnabled { get; set; }
 }

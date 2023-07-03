@@ -23,15 +23,20 @@ export type UserLogin = {
     LastName: string
 }
 
+export type EnabledLogins = {
+    registration: boolean,
+    isGoogleLoginEnabled: boolean,
+}
 
-const LoginForm: React.FC = () => {
+
+const LoginForm: React.FC<EnabledLogins> = (props: EnabledLogins) => {
     const {
         register,
         handleSubmit,
         formState: {errors},
     } = useForm<FormData>();
     const router = useRouter();
-
+    console.log(props)
     // Access the showAlert and hideAlert functions from the store
     const showAlert = useUiStore((state) => state.showAlert);
     const hideAlert = useUiStore((state) => state.hideAlert);
@@ -131,11 +136,14 @@ const LoginForm: React.FC = () => {
                     </div>
                 </div>
             </form>
-            <MaterialButton spacingTop={4} type="submit" size={"full"} color={"white"} onClick={() => {
-                LoginWithOAuth("google")
-            }}>
-                Login with google
-            </MaterialButton>
+            {props.isGoogleLoginEnabled &&
+                <MaterialButton spacingTop={4} type="submit" size={"full"} color={"white"} onClick={() => {
+                    LoginWithOAuth("google")
+                }}>
+                    Login with google
+                </MaterialButton>
+            }
+
             <Alert alwaysShow={true}/>
         </div>
     );

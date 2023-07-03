@@ -15,7 +15,7 @@ const Notification: React.FC = () => {
         })
     );
 
-    let socket = new WebSocket('ws://localhost/WebSocket/connected');
+    let socket = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}/WebSocket/connected`);
     socket.onmessage = function (event) {
         socket.send('pong')
     }

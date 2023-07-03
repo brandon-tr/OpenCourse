@@ -395,6 +395,12 @@ public class UserService : IUserInterface
 
         var checkClaims = await _userManager.GetClaimsAsync(user);
         var checkRoleClaimExsist = checkClaims.Where(cl => cl.Type == "RoleLevel").ToList();
+        if (checkRoleClaimExsist.Count <= 0 || checkRoleClaimExsist is null)
+        {
+            await _userManager.AddClaimAsync(user, new Claim("RoleLevel", maxLevel.ToString()));
+            return;
+        }
+
         var isHigherThanCurrentClaim = false;
         foreach (var claim in checkRoleClaimExsist)
             if (int.Parse(claim.Value) < maxLevel)

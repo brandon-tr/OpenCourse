@@ -46,7 +46,7 @@ export default async function DashboardLayout({
             visible: true,
         },
         {title: "View Stats", link: "/about", category: "views", visible: true},
-        {title: "Add Course", link: "/contact", category: "Add", visible: true},
+        {title: "Add Course", link: "/dashboard/add-course", category: "Add", visible: true},
         {title: "Add User", link: "/contact", category: "Add", visible: true},
         {title: "Trash Bin", link: "/dashboard/trash", category: "Trash", visible: true},
     ];

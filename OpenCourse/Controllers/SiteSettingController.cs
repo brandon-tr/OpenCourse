@@ -72,7 +72,6 @@ public class SiteSettingController : ControllerBase
     [HttpPost("{id}")]
     public async Task<IActionResult> PutSiteSettings(int id, SiteSettings siteSettings)
     {
-        Console.WriteLine(siteSettings);
         if (id != siteSettings.Id) return BadRequest();
 
         siteSettings.Id = id;
@@ -100,5 +99,22 @@ public class SiteSettingController : ControllerBase
     private bool SiteSettingsExists(int id)
     {
         return (_context.SiteSetting?.Any(e => e.Id == id)).GetValueOrDefault();
+    }
+
+    [AllowAnonymous]
+    [HttpGet("GetLogins")]
+    public async Task<ActionResult<GetLogins>> GetLogins()
+    {
+        var siteSettings = await _context.SiteSetting.FindAsync(1);
+
+        if (siteSettings == null) return NotFound();
+
+        var logins = new GetLogins
+        {
+            IsGoogleLoginEnabled = siteSettings.IsGoogleLoginEnabled,
+            registration = siteSettings.IsRegistrationEnabled
+        };
+
+        return Ok(logins);
     }
 }

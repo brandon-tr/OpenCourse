@@ -19,7 +19,12 @@ public class Course
         ErrorMessage = "Description cannot be longer than 500 characters. Minimum length is 10 characters.")]
     public string Description { get; set; }
 
-    public ICollection<Video> Videos { get; set; }
+    [Required]
+    [StringLength(500, MinimumLength = 10,
+        ErrorMessage = "Image URL cannot be longer than 500 characters. Minimum length is 10 characters.")]
+    public string Image { get; set; }
+
+    public ICollection<Video>? Videos { get; set; }
 
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

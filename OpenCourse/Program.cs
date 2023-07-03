@@ -34,14 +34,14 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 
 builder.Services.AddAuthentication().AddGoogle(googleOptions =>
 {
-    // if (bool.Parse(builder.Configuration["Google"]) &&
-    //     builder.Configuration["Authentication:Google:ClientId"] is not null &&
-    //     builder.Configuration["Authentication:Google:ClientSecret"] is not null)
-    // {
-    googleOptions.ClientId = builder.Configuration["Authentication_Google_ClientId"];
-    googleOptions.ClientSecret = builder.Configuration["Authentication_Google_ClientSecret"];
-    googleOptions.SignInScheme = IdentityConstants.ExternalScheme;
-    // }
+    if (bool.Parse(builder.Configuration["Google"]) &&
+        builder.Configuration["Authentication:Google:ClientId"] is not null &&
+        builder.Configuration["Authentication:Google:ClientSecret"] is not null)
+    {
+        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+        googleOptions.SignInScheme = IdentityConstants.ExternalScheme;
+    }
 });
 builder.Services.AddIdentity<User, Role>(options =>
 {
