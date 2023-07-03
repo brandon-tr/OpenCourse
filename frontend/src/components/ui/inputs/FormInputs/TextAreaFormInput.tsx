@@ -38,11 +38,9 @@ const TextAreaFormInput: React.FC<TextAreaInputProps> = ({
                     required: required ? "This field is required" : false,
                     ...validationOptions,
                 })}
-                // className={`block w-full p-2 text-primary border ${
-                //     error ? errorBorderColor : "border-gray-300"
-                // } rounded focus:outline-none focus:border-blue-500`}
                 {...props}
-                className="resize-none p-2 border rounded-md text-gray-700 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`rounded focus:border-blue-500 resize-none p-2 border text-gray-700 border-gray-300 
+                focus:outline-none focus:ring-2 focus:ring-blue-500 ${error ? errorBorderColor : "border-gray-300"}`}
             />
             {error && (
                 <p

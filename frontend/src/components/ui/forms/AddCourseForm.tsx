@@ -13,13 +13,14 @@ import {FileInput} from "@/components/ui/inputs/FormInputs/FileInput";
 type FormData = {
     title: string
     description: string
-    image: any
+    image: FileList
 };
 
 const AddCourseForm: React.FC = () => {
     const {
         register,
         handleSubmit,
+        watch,
         formState: {errors},
     } = useForm<FormData>();
     const router = useRouter();
@@ -102,7 +103,10 @@ const AddCourseForm: React.FC = () => {
                         error={errors.description}
                     />
 
-                    <FileInput label={"Course Image"} id={'image'} register={register}/>
+                    <FileInput error={errors.image} label={"Course Image"} id={'image'} register={register}
+                               validationOptions={{
+                                   required: "This field is required",
+                               }} watch={watch}/>
 
                     <div className={"flex justify-center flex-col gap-2"}>
                         <MaterialButton spacingTop={4} type="submit" size={"full"} color={"secondary"}>

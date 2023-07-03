@@ -13,6 +13,7 @@ interface FileInput {
     errorBgColor?: string;
     errorBorderColor?: string;
     multiple?: boolean;
+    watch: any
 }
 
 export const FileInput: React.FC<FileInput> = ({
@@ -26,11 +27,13 @@ export const FileInput: React.FC<FileInput> = ({
                                                    errorBgColor = "bg-red-100",
                                                    errorBorderColor = "border-red-700",
                                                    multiple = false,
+                                                   watch
                                                }) => {
     const [preview, setPreview] = useState<string | null>(null);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+
+    const handleFileChange = (e: any) => {
+        const file = e[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -41,6 +44,11 @@ export const FileInput: React.FC<FileInput> = ({
             setPreview(null);
         }
     };
+
+    if (watch('image') && watch('image').length > 0) {
+        handleFileChange(watch('image'))
+    }
+
 
     return (
         <div className={"py-2"}>
@@ -58,7 +66,6 @@ export const FileInput: React.FC<FileInput> = ({
                     ...validationOptions,
                 })}
                 accept="image/*"
-                onChange={handleFileChange}
                 className={`block w-full p-2 text-white border ${
                     error ? errorBorderColor : "border-gray-300"
                 } rounded focus:outline-none focus:border-blue-500`}

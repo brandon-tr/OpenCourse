@@ -10,12 +10,15 @@ namespace OpenCourse.Controllers;
 public class CourseController : ControllerBase
 {
     private readonly OpenCourseContext _context;
+    private readonly IWebHostEnvironment _hostEnvironment;
     private readonly ILogger<CourseController> _logger;
 
-    public CourseController(OpenCourseContext context, ILogger<CourseController> logger)
+    public CourseController(OpenCourseContext context, ILogger<CourseController> logger,
+        IWebHostEnvironment hostEnvironment)
     {
         _context = context;
         _logger = logger;
+        _hostEnvironment = hostEnvironment;
     }
 
     // GET: api/Course
@@ -69,18 +72,33 @@ public class CourseController : ControllerBase
     {
         if (_context.Course == null) return Problem("Entity set 'OpenCourseContext.Course'  is null.");
 
-        var filePath = Path.GetTempFileName();
+        // Get the uploaded file from the DTO
+        var file = course.Image;
+        // Extract the original file extension
+        var fileExtension = Path.GetExtension(file.FileName);
+        // Generate a new unique name for the file to avoid collisions
+        var uniqueFileName = Guid.NewGuid().ToString();
+        // Combine the unique file name with the original extension
+        var fileNameWithExtension = $"{uniqueFileName}{fileExtension}";
+        // Combine the file path with the file name
+        var filePath = Path.Combine(_hostEnvironment.WebRootPath, "images", fileNameWithExtension);
+        var imagePath = Path.Combine(_hostEnvironment.WebRootPath, "images");
 
-        using (var stream = System.IO.File.Create(filePath))
+        if (!Directory.Exists(imagePath)) Directory.CreateDirectory(imagePath);
+
+        // Save the file to the server
+        using (var stream = new FileStream(filePath, FileMode.Create))
         {
-            await course.Image.CopyToAsync(stream);
+            await file.CopyToAsync(stream);
         }
+
+        Console.WriteLine("HERE FILE SAVED");
 
         var newCourse = new Course
         {
             Title = course.Title,
             Description = course.Description,
-            Image = filePath
+            Image = fileNameWithExtension
         };
 
         _context.Course.Add(newCourse);
