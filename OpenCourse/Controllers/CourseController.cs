@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenCourse.Data;
+using OpenCourse.Data.DTOs.Request;
+using OpenCourse.Data.DTOs.Response;
 using OpenCourse.Model;
 
 namespace OpenCourse.Controllers;
@@ -23,10 +25,53 @@ public class CourseController : ControllerBase
 
     // GET: api/Course
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Course>>> GetCourse()
+    public async Task<ActionResult<PagedCoursesResponseDto>> GetCourse([FromQuery] PagingParameters pagingParameters)
     {
-        if (_context.Course == null) return NotFound();
-        return await _context.Course.ToListAsync();
+        if (_context.Course == null) throw new NullReferenceException("Courses is null");
+
+        if (pagingParameters.PageNumber <= 0) throw new NullReferenceException("Page number must be greater than 0");
+        if (pagingParameters.PageSize <= 0) throw new NullReferenceException("Page size must be greater than 0");
+
+        var query = _context.Course.AsQueryable() ?? throw new ArgumentNullException("_context.Course.AsQueryable()");
+
+        query = query.Where(c => c.Deleted == false);
+
+        if (!string.IsNullOrEmpty(pagingParameters.Search))
+            query = query.Where(u =>
+                u.Title.Contains(pagingParameters.Search) ||
+                u.Description.Contains(pagingParameters.Search) ||
+                u.Id.ToString().Equals(pagingParameters.Search)
+            );
+
+        // Apply pagination
+        var totalCount = await query.CountAsync();
+        if (totalCount <= 0) totalCount = 1;
+
+        var totalPages = (int)Math.Ceiling((double)totalCount / pagingParameters.PageSize);
+        var currentPage = pagingParameters.PageNumber > totalPages ? totalPages : pagingParameters.PageNumber;
+        query = query
+            .OrderBy(c => c.Id)
+            .Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
+            .Take(pagingParameters.PageSize);
+        var courseList = await query.Select(c => new CourseDto
+        {
+            Id = c.Id,
+            Title = c.Title,
+            CreatedAt = c.CreatedAt,
+            UpdatedAt = c.UpdatedAt,
+            Image = c.Image,
+            VideoCount = c.Videos.Count
+        }).ToListAsync();
+
+        var response = new PagedCoursesResponseDto
+        {
+            Courses = courseList,
+            CurrentPage = currentPage,
+            TotalPages = totalPages,
+            PageSize = pagingParameters.PageSize,
+            TotalCount = totalCount
+        };
+        return response;
     }
 
     // GET: api/Course/5
@@ -120,10 +165,25 @@ public class CourseController : ControllerBase
         var course = await _context.Course.FindAsync(id);
         if (course == null) return NotFound();
 
-        _context.Course.Remove(course);
-        await _context.SaveChangesAsync();
+        course.Deleted = true;
+        course.DateToDelete = DateTime.UtcNow + TimeSpan.FromDays(30);
 
-        return NoContent();
+        var trashBin = new TrashBin { Course = course };
+
+        // Add it to the context
+        _context.TrashBin.Add(trashBin);
+
+        _context.Update(course);
+
+        var response = new
+        {
+            status = 200,
+            message = "Successfully deleted course"
+        };
+
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+
+        return Ok(response);
     }
 
     private bool CourseExists(int id)

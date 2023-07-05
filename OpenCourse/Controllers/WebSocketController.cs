@@ -112,10 +112,11 @@ public class WebSocketController : ControllerBase
                 }
             }
 
-            await webSocket.CloseAsync(
-                receive.CloseStatus.Value,
-                receive.CloseStatusDescription,
-                CancellationToken.None);
+            if (receive.CloseStatus != null)
+                await webSocket.CloseAsync(
+                    receive.CloseStatus.Value,
+                    receive.CloseStatusDescription,
+                    CancellationToken.None);
         }
         else
         {

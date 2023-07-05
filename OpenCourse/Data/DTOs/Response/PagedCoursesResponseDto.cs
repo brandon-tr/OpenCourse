@@ -1,10 +1,8 @@
-﻿using OpenCourse.Data.DTOs.Request;
+﻿namespace OpenCourse.Data.DTOs.Response;
 
-namespace OpenCourse.Data.DTOs.Response;
-
-public class PagedTrashBinResponseDto
+public class PagedCoursesResponseDto
 {
-    public List<TrashBinDto> Data { get; set; } = new();
+    public List<CourseDto> Courses { get; set; } = new();
 
     public int CurrentPage { get; set; }
     public int TotalPages { get; set; }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpenCourse.Model;
@@ -25,6 +26,9 @@ public class Course
     public string Image { get; set; }
 
     public ICollection<Video>? Videos { get; set; }
+    public TrashBin? TrashBin { get; set; }
+    [DefaultValue(false)] public bool Deleted { get; set; }
+    public DateTime? DateToDelete { get; set; }
 
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

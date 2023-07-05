@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace OpenCourse.Data.DTOs.Response;
+namespace OpenCourse.Data.DTOs.Request;
 
 public class SiteTitleDto
 {

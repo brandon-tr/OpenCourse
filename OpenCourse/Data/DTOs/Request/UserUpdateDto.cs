@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using OpenCourse.Data.DTOs.Response;
 
-namespace OpenCourse.Data.DTOs.Response;
+namespace OpenCourse.Data.DTOs.Request;
 
 public class UserUpdateDto
 {

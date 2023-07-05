@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OpenCourse.Data;
+using OpenCourse.Data.DTOs.Request;
 using OpenCourse.Data.DTOs.Response;
 using OpenCourse.Exceptions;
 using OpenCourse.Interfaces;
@@ -164,7 +165,7 @@ public class UserService : IUserInterface
         var usersList = await users.Select(user => new GetAllUsersResponseDto
         {
             Id = user.Id,
-            Email = user.Email,
+            Email = user.Email ?? string.Empty,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Avatar = user.Avatar,
@@ -172,7 +173,7 @@ public class UserService : IUserInterface
             UserRoles = user.UserRoles.Select(userRole => new UserRoleResponseDto
             {
                 Id = userRole.Role.Id,
-                Name = userRole.Role.Name,
+                Name = userRole.Role.Name ?? "",
                 Level = userRole.Role.Level
             }).ToList()
         }).ToListAsync();

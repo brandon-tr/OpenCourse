@@ -52,9 +52,9 @@ const AddCourseForm: React.FC = () => {
         } else if (json.status === 200 || json.status === 201) {
             console.log(json);
             showAlert(json.message, "success"); // Show the success alert
-            setTimeout(() => {
-                router.push("/courses");
-            }, 3000);
+            // setTimeout(() => {
+            //     router.push("/courses");
+            // }, 3000);
         } else {
             showAlert("Unknown error", "error"); // Show the error alert
         }

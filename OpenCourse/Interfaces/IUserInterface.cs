@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OpenCourse.Data;
+using OpenCourse.Data.DTOs.Request;
 using OpenCourse.Data.DTOs.Response;
 using OpenCourse.Model;
 

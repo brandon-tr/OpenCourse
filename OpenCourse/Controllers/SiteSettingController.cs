@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenCourse.Data;
-using OpenCourse.Data.DTOs.Response;
+using OpenCourse.Data.DTOs.Request;
 using OpenCourse.Model;
 
 namespace OpenCourse.Controllers;

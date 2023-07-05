@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OpenCourse.Data;
+using OpenCourse.Data.DTOs.Request;
 using OpenCourse.Data.DTOs.Response;
 using OpenCourse.Exceptions;
 using OpenCourse.Model;
